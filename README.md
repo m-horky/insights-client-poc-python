@@ -26,7 +26,7 @@ A next-generation implementation of [`insights-client`](https://github.com/RedHa
 The easiest way to use the `ruff` linter and formatter is through [`pre-commit`](https://pre-commit.org):
 
 ```bash
-pre-commit run -a
+ruff format && ruff check
 # ...to run it automatically,
 pre-commit install
 ```
