@@ -4,6 +4,7 @@ import sys
 from typing import Self
 
 from insights_shell._cmd import abstract
+from insights_shell._shell import system
 
 
 class StatusCommand(abstract.AbstractCommand):
@@ -18,8 +19,7 @@ class StatusCommand(abstract.AbstractCommand):
 
     def run(self, args: argparse.Namespace) -> None:
         """Display system status."""
-        # FIXME
-        is_registered: bool = False
+        is_registered: bool = system.is_registered()
 
         if args.format == "human":
             if is_registered:
