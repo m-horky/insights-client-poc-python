@@ -3,7 +3,7 @@ import json
 import sys
 from typing import Self
 
-from insights_shell.cmd import abstract
+from insights_shell._cmd import abstract
 
 
 class StatusCommand(abstract.AbstractCommand):
@@ -12,12 +12,7 @@ class StatusCommand(abstract.AbstractCommand):
     @classmethod
     def create(cls, subparsers) -> Self:
         parser = subparsers.add_parser(cls.NAME)
-        parser.add_argument(
-            "--format",
-            choices=["human", "json"],
-            default="human",
-            help="output format",
-        )
+        parser.add_argument(abstract.FORMAT_FLAG, **abstract.FORMAT_FLAG_ARGS)
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:

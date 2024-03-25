@@ -1,8 +1,11 @@
 import argparse
 import sys
 
-import insights_shell.cmd.abstract
-from insights_shell.cmd.version import VersionCommand
+import insights_shell._cmd.abstract
+from insights_shell._cmd.version import VersionCommand
+from insights_shell._cmd.status import StatusCommand
+from insights_shell._cmd.register import RegisterCommand
+from insights_shell._cmd.unregister import UnregisterCommand
 
 
 def main():
@@ -15,9 +18,12 @@ def main():
     )
 
     subparsers = parser.add_subparsers(dest="command")
-    commands: dict[str, insights_shell.cmd.abstract.AbstractCommand] = {}
+    commands: dict[str, insights_shell._cmd.abstract.AbstractCommand] = {}
     for subcommand in [
         VersionCommand,
+        StatusCommand,
+        RegisterCommand,
+        UnregisterCommand,
     ]:
         commands[subcommand.NAME] = subcommand.create(subparsers)
 
