@@ -17,7 +17,7 @@ A next-generation implementation of [`insights-client`](https://github.com/RedHa
 4. Run the client.
 
     ```bash
-    sudo EGG=../insights-core python3 insights_shell/__init__.py --insecure-egg ...
+    sudo PYTHONPATH=. EGG=../insights-core python3 insights_shell/__init__.py --insecure-egg ...
     ```
 
 

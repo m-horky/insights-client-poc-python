@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+from typing import Self
 
 import insights_shell.__about__
 from insights_shell.cmd import abstract
@@ -9,19 +10,16 @@ from insights_shell.cmd import abstract
 class VersionCommand(abstract.AbstractCommand):
     NAME = "version"
 
-    def __init__(self, parser):
-        self.parser = parser
-
     @classmethod
-    def create(cls, subparsers):
-        parser = subparsers.add_parser("version")
+    def create(cls, subparsers) -> Self:
+        parser = subparsers.add_parser(cls.NAME)
         parser.add_argument(
             "--format",
             choices=["human", "json"],
             default="human",
             help="output format",
         )
-        return cls(parser)
+        return cls()
 
     def run(self, args: argparse.Namespace) -> None:
         versions = {
