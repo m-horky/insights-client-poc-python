@@ -8,15 +8,17 @@ from insights_shell._cmd import abstract
 
 class StatusCommand(abstract.AbstractCommand):
     NAME = "status"
+    HELP = "display system status"
 
     @classmethod
     def create(cls, subparsers) -> Self:
-        parser = subparsers.add_parser(cls.NAME)
+        parser = subparsers.add_parser(cls.NAME, help=cls.HELP)
         parser.add_argument(abstract.FORMAT_FLAG, **abstract.FORMAT_FLAG_ARGS)
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
         """Display system status."""
+        # FIXME
         is_registered: bool = False
 
         if args.format == "human":

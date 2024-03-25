@@ -4,6 +4,7 @@ from typing import Self
 
 class AbstractCommand:
     NAME: str
+    HELP: str
 
     @classmethod
     def create(cls, subparsers) -> Self:
