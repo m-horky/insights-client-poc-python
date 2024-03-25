@@ -15,12 +15,10 @@ def main():
     )
 
     subparsers = parser.add_subparsers(dest="command")
-    subcommands: list[type[insights_shell.cmd.abstract.AbstractCommand]] = [
-        VersionCommand,
-    ]
-
     commands: dict[str, insights_shell.cmd.abstract.AbstractCommand] = {}
-    for subcommand in subcommands:
+    for subcommand in [
+        VersionCommand,
+    ]:
         commands[subcommand.NAME] = subcommand.create(subparsers)
 
     args = parser.parse_args()
