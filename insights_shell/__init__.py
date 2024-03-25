@@ -1,4 +1,5 @@
 import argparse
+import logging
 import sys
 
 import insights_shell._cmd.abstract
@@ -6,6 +7,14 @@ from insights_shell._cmd.version import VersionCommand
 from insights_shell._cmd.status import StatusCommand
 from insights_shell._cmd.register import RegisterCommand
 from insights_shell._cmd.unregister import UnregisterCommand
+
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="[{levelname:<7}] {filename}:{lineno} {message}\033[0m",
+    style="{",
+)
+logger = logging.getLogger(__file__)
 
 
 def main():
