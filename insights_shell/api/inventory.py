@@ -1,7 +1,7 @@
 import dataclasses
 from typing import List, Optional
 
-from insights_shell._shell.api.connection import Connection
+from insights_shell.api.connection import Connection
 
 
 @dataclasses.dataclass(frozen=True)

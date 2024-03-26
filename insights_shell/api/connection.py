@@ -44,18 +44,12 @@ class Connection:
         headers: Optional[dict[str, str]] = None,
         data=None,
     ) -> dict:
-        url = (
-            f"{self.PATH}{endpoint}?{urllib.parse.urlencode(params)}"
-            if params
-            else endpoint
-        )
+        url = f"{self.PATH}{endpoint}?{urllib.parse.urlencode(params)}" if params else endpoint
         if headers is None:
             headers = {}
 
         context: ssl.SSLContext = self._create_tls_context()
-        conn = http.client.HTTPSConnection(
-            host=self.HOST, port=self.PORT, context=context
-        )
+        conn = http.client.HTTPSConnection(host=self.HOST, port=self.PORT, context=context)
 
         logger.debug(f"Request {method} {self.HOST}:{self.PORT}{url} ({headers=})")
         conn.request(method=method, url=url, headers=headers, body=data)
@@ -91,6 +85,4 @@ class Connection:
         headers: Optional[dict[str, str]] = None,
         data=None,
     ) -> dict:
-        return self._request(
-            "DELETE", endpoint, params=params, headers=headers, data=data
-        )
+        return self._request("DELETE", endpoint, params=params, headers=headers, data=data)
