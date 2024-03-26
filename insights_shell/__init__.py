@@ -5,8 +5,11 @@ import sys
 import insights_shell._cmd.abstract
 from insights_shell._cmd.version import VersionCommand
 from insights_shell._cmd.status import StatusCommand
+from insights_shell._cmd.identity import IdentityCommand
 from insights_shell._cmd.register import RegisterCommand
 from insights_shell._cmd.unregister import UnregisterCommand
+from insights_shell._cmd.scan import ScanCommand
+from insights_shell._cmd.scan_compliance import ComplianceScanCommand
 
 
 logging.basicConfig(
@@ -29,10 +32,15 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     commands: dict[str, insights_shell._cmd.abstract.AbstractCommand] = {}
     for subcommand in [
+        # built-in
         VersionCommand,
         StatusCommand,
+        IdentityCommand,
         RegisterCommand,
         UnregisterCommand,
+        # core
+        ScanCommand,
+        ComplianceScanCommand,
     ]:
         commands[subcommand.NAME] = subcommand.create(subparsers)
 
