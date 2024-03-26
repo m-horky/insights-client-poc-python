@@ -44,7 +44,9 @@ class Connection:
         headers: Optional[dict[str, str]] = None,
         data=None,
     ) -> dict:
-        url = f"{self.PATH}{endpoint}?{urllib.parse.urlencode(params)}" if params else endpoint
+        url = f"{self.PATH}{endpoint}"
+        if params:
+            url += f"?{urllib.parse.urlencode(params)}"
         if headers is None:
             headers = {}
 
@@ -61,6 +63,9 @@ class Connection:
         logger.debug(f"Response with code {response.status} after {delta * 100:.1f} ms")
 
         raw = response.read()
+        if not len(raw):
+            return {}
+
         try:
             return json.loads(raw)
         except json.decoder.JSONDecodeError:
