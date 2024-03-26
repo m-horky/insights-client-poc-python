@@ -1,7 +1,15 @@
 import argparse
+import datetime
+import logging
+import os.path
 from typing import Self
 
+from insights_shell.api import inventory
 from insights_shell._cmd import abstract
+from insights_shell._shell import system
+
+
+logger = logging.getLogger(__name__)
 
 
 class UnregisterCommand(abstract.AbstractCommand):
@@ -15,4 +23,31 @@ class UnregisterCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        print(args)
+        logger.info("Unregistering the host.")
+        # 1. Query Inventory
+        # 2. If we get an object back, call DELETE
+        # 3. Ensure machine-id file does not exist
+        # 4. Ensure .registered file does not exist
+        # 5. Ensure .unregistered file exists
+
+        host = system.get_inventory_entry()
+        if not host:
+            print("The host was not found in Inventory.")
+        else:
+            logger.debug("Deleting the host from Inventory.")
+            inventory.Inventory(inventory.InventoryConnection()).delete_host(host.id)
+
+        if os.path.exists("/etc/insights-client/machine-id"):
+            logger.debug("Deleting /etc/insights-client/machine-id.")
+            os.remove("/etc/insights-client/machine-id")
+
+        if os.path.exists("/etc/insights-client/.registered"):
+            logger.debug("Deleting /etc/insights-client/.registered.")
+            os.remove("/etc/insights-client/.registered")
+
+        if not os.path.exists("/etc/insights-client/.unregistered"):
+            logger.debug("Writing /etc/insights-client/.unregistered")
+            with open("/etc/insights-client/.unregistered", "w") as f:
+                f.write(
+                    datetime.datetime.isoformat(datetime.datetime.now(tz=datetime.timezone.utc))
+                )

@@ -67,5 +67,5 @@ class Inventory:
         return Hosts.from_json(raw).results
 
     def delete_host(self, insights_id: str) -> None:
-        # This method does not return anything
         self.connection.delete(f"/hosts/{insights_id}")
+        return None
