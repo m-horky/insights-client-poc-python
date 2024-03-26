@@ -6,7 +6,7 @@ from insights_shell._cmd import abstract
 
 class UnregisterCommand(abstract.AbstractCommand):
     NAME = "unregister"
-    HELP = "unregister the system"
+    HELP = "unregister the host"
 
     @classmethod
     def create(cls, subparsers) -> Self:

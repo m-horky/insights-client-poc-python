@@ -9,7 +9,7 @@ from insights_shell._shell import system
 
 class StatusCommand(abstract.AbstractCommand):
     NAME = "status"
-    HELP = "display system status"
+    HELP = "display host status"
 
     @classmethod
     def create(cls, subparsers) -> Self:
@@ -18,7 +18,6 @@ class StatusCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        """Display system status."""
         is_registered: bool = system.is_registered()
 
         if args.format == "human":

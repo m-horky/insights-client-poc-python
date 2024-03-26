@@ -1,12 +1,14 @@
 import argparse
+import sys
 from typing import Self
 
 from insights_shell._cmd import abstract
+from insights_shell._shell import system
 
 
 class RegisterCommand(abstract.AbstractCommand):
     NAME = "register"
-    HELP = "register the system"
+    HELP = "register the host"
 
     @classmethod
     def create(cls, subparsers) -> Self:
@@ -15,4 +17,6 @@ class RegisterCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        print(args)
+        if system.is_registered():
+            print("This host is already registered.")
+            sys.exit(1)
