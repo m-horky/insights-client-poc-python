@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Optional
+from typing import List, Optional, Self
 
 from insights_shell.api.connection import Connection
 
@@ -7,7 +7,7 @@ from insights_shell.api.connection import Connection
 @dataclasses.dataclass(frozen=True)
 class Host:
     insights_id: str
-    subscription_manger_id: Optional[str]
+    subscription_manager_id: Optional[str]
     satellite_id: Optional[str]
     bios_uuid: Optional[str]
     ip_addresses: list[str]
@@ -30,6 +30,10 @@ class Host:
     updated: str
     groups: list
 
+    @classmethod
+    def from_json(cls, data: dict) -> Self:
+        return cls(**data)
+
 
 @dataclasses.dataclass(frozen=True)
 class Hosts:
@@ -38,6 +42,11 @@ class Hosts:
     page: int
     per_page: int
     results: List[Host]
+
+    @classmethod
+    def from_json(cls, data: dict) -> Self:
+        data["results"] = [Host.from_json(host) for host in data["results"]]
+        return cls(**data)
 
 
 class InventoryConnection(Connection):
@@ -55,7 +64,7 @@ class Inventory:
     def get_hosts(self, machine_id: str) -> list[Host]:
         # FIXME This should probably iterate over all the hosts?
         raw: dict = self.connection.get("/hosts", params={"insights_id": machine_id})
-        return Hosts(**raw).results
+        return Hosts.from_json(raw).results
 
     def delete_host(self, insights_id: str) -> None:
         # This method does not return anything
