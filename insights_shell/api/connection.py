@@ -77,6 +77,26 @@ class Connection:
     ) -> dict:
         return self._request("GET", endpoint, params=params, headers=headers, data=data)
 
+    def put(
+        self,
+        endpoint: str,
+        *,
+        params: Optional[dict[str, str]] = None,
+        headers: Optional[dict[str, str]] = None,
+        data=None,
+    ) -> dict:
+        return self._request("PUT", endpoint, params=params, headers=headers, data=data)
+
+    def post(
+        self,
+        endpoint: str,
+        *,
+        params: Optional[dict[str, str]] = None,
+        headers: Optional[dict[str, str]] = None,
+        data=None,
+    ) -> dict:
+        return self._request("POST", endpoint, params=params, headers=headers, data=data)
+
     def delete(
         self,
         endpoint: str,
