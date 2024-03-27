@@ -7,8 +7,8 @@ from insights_shell._shell import system
 
 
 class ComplianceScanCommand(abstract.AbstractCommand):
-    NAME = "scan-for-compliance"
-    HELP = "scan the system and upload the results to Insights Compliance"
+    NAME = "scan-compliance"
+    HELP = "scan the system for compliance and upload the results to Insights"
 
     @classmethod
     def create(cls, subparsers) -> Self:

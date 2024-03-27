@@ -1,4 +1,5 @@
 import argparse
+import logging
 import sys
 from typing import Self
 
@@ -20,3 +21,9 @@ class RegisterCommand(abstract.AbstractCommand):
         if system.is_registered():
             print("This host is already registered.")
             sys.exit(1)
+
+        logging.info("Registering the host.")
+        # 1. Collect data
+        # 2. Upload them
+
+        raise NotImplementedError
