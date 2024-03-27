@@ -58,8 +58,8 @@ class InventoryConnection(Connection):
 
 
 class Inventory:
-    def __init__(self, connection: InventoryConnection):
-        self.connection = connection
+    def __init__(self, connection: Optional[InventoryConnection] = None):
+        self.connection = connection if connection is not None else InventoryConnection()
 
     def get_hosts(self, machine_id: str) -> list[Host]:
         # FIXME This should probably iterate over all the hosts?

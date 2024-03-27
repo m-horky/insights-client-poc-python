@@ -38,7 +38,7 @@ class UnregisterCommand(abstract.AbstractCommand):
             print("The host was not found in Inventory.")
         else:
             logger.debug("Deleting the host from Inventory.")
-            inventory.Inventory(inventory.InventoryConnection()).delete_host(host.id)
+            inventory.Inventory().delete_host(host.id)
 
         if os.path.exists("/etc/insights-client/machine-id"):
             logger.debug("Deleting /etc/insights-client/machine-id.")

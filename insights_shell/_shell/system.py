@@ -23,7 +23,7 @@ def get_inventory_entry() -> inventory.Host | None:
         machine_id = f.read()
 
     hosts: list[inventory.Host]
-    hosts = inventory.Inventory(inventory.InventoryConnection()).get_hosts(machine_id)
+    hosts = inventory.Inventory().get_hosts(machine_id)
 
     if not hosts:
         return None
