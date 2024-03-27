@@ -2,6 +2,8 @@ import argparse
 import logging
 import sys
 
+from insights_shell._shell import egg
+
 import insights_shell._cmd.abstract
 from insights_shell._cmd.version import VersionCommand
 from insights_shell._cmd.status import StatusCommand
@@ -23,6 +25,12 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--skip-egg-update",
+        action="store_true",
+        default=False,
+        help=argparse.SUPPRESS,
+    )
     parser.add_argument(
         "--insecure-egg",
         action="store_true",
@@ -59,6 +67,9 @@ def main():
         else:
             print(f"Unknown command: {args.command}")
             sys.exit(1)
+
+    if not args.skip_egg_update:
+        egg.update()
 
     commands[args.command].run(args)
 
