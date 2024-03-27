@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import glob
 import logging
 import os.path
 from typing import Self
@@ -29,6 +30,8 @@ class UnregisterCommand(abstract.AbstractCommand):
         # 3. Ensure machine-id file does not exist
         # 4. Ensure .registered file does not exist
         # 5. Ensure .unregistered file exists
+        # 6. Ensure /var/lib/insights/* does not exist
+        # 7. Ensure /etc/rhsm/facts/insights-client.json does not exist
 
         host = system.get_inventory_entry()
         if not host:
@@ -51,3 +54,13 @@ class UnregisterCommand(abstract.AbstractCommand):
                 f.write(
                     datetime.datetime.isoformat(datetime.datetime.now(tz=datetime.timezone.utc))
                 )
+
+        var_lib_files = glob.glob("/var/lib/insights/*")
+        if var_lib_files:
+            logger.debug("Deleting files in /var/lib/insights/")
+            for file in var_lib_files:
+                os.remove(file)
+
+        if os.path.exists("/etc/rhsm/facts/insights-client.json"):
+            logger.debug("Deleting /etc/rhsm/facts/insights-client.json")
+            os.remove("/etc/rhsm/facts/insights-client.json")
