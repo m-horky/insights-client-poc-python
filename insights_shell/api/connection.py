@@ -1,5 +1,4 @@
 import http.client
-import json
 import logging
 import ssl
 import time
@@ -43,7 +42,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data=None,
-    ) -> dict:
+    ) -> http.client.HTTPResponse:
         url = f"{self.PATH}{endpoint}"
         if params:
             url += f"?{urllib.parse.urlencode(params)}"
@@ -59,18 +58,9 @@ class Connection:
         now: float = time.time()
         response: http.client.HTTPResponse = conn.getresponse()
         delta: float = time.time() - now
-
         logger.debug(f"Response with code {response.status} after {delta * 100:.1f} ms")
 
-        raw = response.read()
-        if not len(raw):
-            return {}
-
-        try:
-            return json.loads(raw)
-        except json.decoder.JSONDecodeError:
-            logger.debug(f"Response could not be deserialized: {raw}")
-            raise
+        return response
 
     def get(
         self,
@@ -79,7 +69,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data=None,
-    ) -> dict:
+    ) -> http.client.HTTPResponse:
         return self._request("GET", endpoint, params=params, headers=headers, data=data)
 
     def put(
@@ -89,7 +79,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data=None,
-    ) -> dict:
+    ) -> http.client.HTTPResponse:
         return self._request("PUT", endpoint, params=params, headers=headers, data=data)
 
     def post(
@@ -99,7 +89,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data=None,
-    ) -> dict:
+    ) -> http.client.HTTPResponse:
         return self._request("POST", endpoint, params=params, headers=headers, data=data)
 
     def delete(
@@ -109,5 +99,5 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data=None,
-    ) -> dict:
+    ) -> http.client.HTTPResponse:
         return self._request("DELETE", endpoint, params=params, headers=headers, data=data)

@@ -1,4 +1,6 @@
 import dataclasses
+import http.client
+import json
 from typing import List, Optional, Self
 
 from insights_shell.api.connection import Connection
@@ -51,7 +53,6 @@ class Hosts:
 
 class InventoryConnection(Connection):
     # TODO Detect stage
-    # URL = "https://cert.cloud.redhat.com/api/inventory/v1"
     HOST = "cert.cloud.stage.redhat.com"
     PORT = 443
     PATH = "/api/inventory/v1"
@@ -62,9 +63,11 @@ class Inventory:
         self.connection = connection if connection is not None else InventoryConnection()
 
     def get_hosts(self, machine_id: str) -> list[Host]:
-        # FIXME This should probably iterate over all the hosts?
-        raw: dict = self.connection.get("/hosts", params={"insights_id": machine_id})
-        return Hosts.from_json(raw).results
+        # FIXME This should probably iterate over all the hosts? The endpoint is paginated.
+        raw: http.client.HTTPResponse = self.connection.get(
+            "/hosts", params={"insights_id": machine_id}
+        )
+        return Hosts.from_json(json.load(raw)).results
 
     def delete_host(self, insights_id: str) -> None:
         self.connection.delete(f"/hosts/{insights_id}")
