@@ -18,7 +18,7 @@ logging.basicConfig(
     format="[{levelname:<7}] {filename}:{lineno} {message}\033[0m",
     style="{",
 )
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 def main():
