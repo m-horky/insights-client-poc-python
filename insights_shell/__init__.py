@@ -8,6 +8,7 @@ from insights_shell._cmd.status import StatusCommand
 from insights_shell._cmd.identity import IdentityCommand
 from insights_shell._cmd.register import RegisterCommand
 from insights_shell._cmd.unregister import UnregisterCommand
+from insights_shell._cmd.checkin import CheckinCommand
 from insights_shell._cmd.scan import ScanCommand
 from insights_shell._cmd.scan_compliance import ComplianceScanCommand
 
@@ -29,18 +30,23 @@ def main():
         help=argparse.SUPPRESS,
     )
 
-    subparsers = parser.add_subparsers(dest="command")
     commands: dict[str, insights_shell._cmd.abstract.AbstractCommand] = {}
+
+    subparsers = parser.add_subparsers(dest="command")
     for subcommand in [
-        # built-in
-        VersionCommand,
+        # host
         StatusCommand,
         IdentityCommand,
         RegisterCommand,
         UnregisterCommand,
-        # core
+        VersionCommand,
+        # collection
+        CheckinCommand,
         ScanCommand,
         ComplianceScanCommand,
+        #
+        # --support
+        # --diagnosis
     ]:
         commands[subcommand.NAME] = subcommand.create(subparsers)
 
