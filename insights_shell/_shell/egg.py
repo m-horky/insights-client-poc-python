@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 from typing import Optional
 
+from insights_shell import config
 from insights_shell.api import module_update_router
 from insights_shell.api import insights
 
@@ -22,6 +23,17 @@ SIG_ETAG_PATH = pathlib.Path("/etc/insights-client/.insights-core-gpg-sig.etag")
 
 TEMPORARY_GPG_HOME_PARENT_DIRECTORY = pathlib.Path("/var/lib/insights/")
 GPG_KEY_PATH = pathlib.Path("/etc/insights-client/redhattools.pub.gpg")
+
+
+def _get_route() -> module_update_router.Route:
+    logger.debug("Fetching route.")
+
+    if config.get().egg.canary:
+        logger.debug("Using canary egg route as requested in the configuration file.")
+        return module_update_router.Route(url="/testing")
+
+    route = module_update_router.ModuleUpdateRouter().get_module_route("insights-core")
+    return route
 
 
 def _update_egg(*, route: module_update_router.Route, force: bool = False) -> bool:
@@ -123,9 +135,7 @@ def update():
     # 2. Verify the signature
     # 3. Move it to place
 
-    logger.debug("Fetching route.")
-    route: module_update_router.Route
-    route = module_update_router.ModuleUpdateRouter().get_module_route("insights-core")
+    route: module_update_router.Route = _get_route()
 
     updated: bool = _update_egg(route=route)
     if updated:
