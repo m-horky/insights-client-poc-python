@@ -93,6 +93,7 @@ class Inventory:
             return Host.from_json(json.load(raw))
 
         logging.debug(
-            f"API returned unexpected status code {raw.status}. Response: {raw.read()}."
+            f"API returned unexpected status code {raw.status}. "
+            f"Response: {raw.read().decode('utf-8')}."
         )
         raise LookupError(f"Facts were rejected by the server with status code {raw.status}.")

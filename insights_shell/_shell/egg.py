@@ -60,7 +60,7 @@ def _update_egg(*, route: module_update_router.Route, force: bool = False) -> Eg
     logger.debug("Fetching the egg.")
     resp_egg: http.client.HTTPResponse = insights.Insights().get_egg(route=route, etag=etag)
 
-    new_etag: str = resp_egg.headers.get("Etag")
+    new_etag: str = resp_egg.headers.get("Etag", "")
     if etag == new_etag:
         logger.debug("Etag matches, we don't need to download anything.")
         if not force:

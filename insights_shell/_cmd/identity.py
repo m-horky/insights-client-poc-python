@@ -23,9 +23,9 @@ class IdentityCommand(abstract.AbstractCommand):
         # --format json
         if args.format == "json":
             data = {
-                "insights_id": host.id,
-                "insights_client_id": host.insights_id,
-                "subscription_manager_id": host.subscription_manager_id,
+                "insights_id": getattr(host, "id", None),
+                "insights_client_id": getattr(host, "insights_id", None),
+                "subscription_manager_id": getattr(host, "subscription_manager_id", None),
             }
             print(json.dumps(data))
             sys.exit(0)

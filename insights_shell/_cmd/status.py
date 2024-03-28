@@ -31,5 +31,5 @@ class StatusCommand(abstract.AbstractCommand):
             print(json.dumps({"registered": is_registered}))
             sys.exit(0)
 
-        print(f"Unknown format {args['format']}", file=sys.stderr)
+        print(f"Unknown format {args.format}", file=sys.stderr)
         sys.exit(1)

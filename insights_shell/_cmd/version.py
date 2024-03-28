@@ -38,5 +38,5 @@ class VersionCommand(abstract.AbstractCommand):
             print(json.dumps(versions))
             sys.exit(0)
 
-        print(f"Unknown format {args['format']}", file=sys.stderr)
+        print(f"Unknown format {args.format}", file=sys.stderr)
         sys.exit(1)

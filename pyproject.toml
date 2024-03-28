@@ -3,3 +3,6 @@ line-length = 98
 
 [tool.ruff.format]
 docstring-code-format = true
+
+[tool.mypy]
+check_untyped_defs = true
