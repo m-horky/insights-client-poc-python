@@ -44,7 +44,7 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data=None,
+        data: Optional[str] = None,
     ) -> http.client.HTTPResponse:
         url = f"{self.PATH}{endpoint}"
         if params:
@@ -71,7 +71,7 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data=None,
+        data: Optional[str] = None,
     ) -> http.client.HTTPResponse:
         return self._request("GET", endpoint, params=params, headers=headers, data=data)
 
@@ -81,7 +81,7 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data=None,
+        data: Optional[str] = None,
     ) -> http.client.HTTPResponse:
         return self._request("PUT", endpoint, params=params, headers=headers, data=data)
 
@@ -91,9 +91,19 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data=None,
+        data: Optional[str] = None,
     ) -> http.client.HTTPResponse:
         return self._request("POST", endpoint, params=params, headers=headers, data=data)
+
+    def patch(
+        self,
+        endpoint: str,
+        *,
+        params: Optional[dict[str, str]] = None,
+        headers: Optional[dict[str, str]] = None,
+        data: Optional[str] = None,
+    ) -> http.client.HTTPResponse:
+        return self._request("PATCH", endpoint, params=params, headers=headers, data=data)
 
     def delete(
         self,
@@ -101,6 +111,6 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data=None,
+        data: Optional[str] = None,
     ) -> http.client.HTTPResponse:
         return self._request("DELETE", endpoint, params=params, headers=headers, data=data)
