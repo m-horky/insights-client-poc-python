@@ -6,6 +6,7 @@ import urllib.request
 import urllib.parse
 from typing import Optional
 
+from insights_shell import config
 
 logger = logging.getLogger(__name__)
 
@@ -24,14 +25,16 @@ class Connection:
     # TODO Add support for connection reuse
 
     def _create_tls_context(self) -> ssl.SSLContext:
+        cfg: config.Configuration = config.get()
+
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         ctx.check_hostname = True
         ctx.verify_mode = ssl.CERT_REQUIRED
         ctx.load_cert_chain(
-            certfile="/etc/pki/consumer/cert.pem",
-            keyfile="/etc/pki/consumer/key.pem",
+            certfile=f"{cfg.network.identity_certificate!s}",
+            keyfile=f"{cfg.network.identity_key!s}",
         )
-        ctx.load_verify_locations(cafile="/etc/pki/tls/cert.pem")
+        ctx.load_verify_locations(cafile=f"{cfg.network.ca_certificates!s}")
         return ctx
 
     def _request(
@@ -52,7 +55,7 @@ class Connection:
         context: ssl.SSLContext = self._create_tls_context()
         conn = http.client.HTTPSConnection(host=self.HOST, port=self.PORT, context=context)
 
-        logger.debug(f"Request {method} {self.HOST}:{self.PORT}{url} ({headers=})")
+        logger.debug(f"Request {method} {self.HOST}:{self.PORT}{url} (headers={headers})")
         conn.request(method=method, url=url, headers=headers, body=data)
 
         now: float = time.time()

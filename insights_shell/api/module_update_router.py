@@ -3,6 +3,7 @@ import http.client
 import json
 from typing import Optional, Self
 
+from insights_shell import config
 from insights_shell.api.connection import Connection
 
 
@@ -16,9 +17,8 @@ class Route:
 
 
 class ModuleUpdateRouterConnection(Connection):
-    # TODO Detect stage
-    HOST = "cert.cloud.stage.redhat.com"
-    PORT = 443
+    HOST = config.get().api.host
+    PORT = config.get().api.port
     PATH = "/api/module-update-router/v1"
 
 

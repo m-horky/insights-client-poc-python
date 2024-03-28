@@ -1,14 +1,14 @@
 import http.client
 from typing import Optional
 
+from insights_shell import config
 from insights_shell.api.connection import Connection
 from insights_shell.api.module_update_router import Route
 
 
 class InsightsConnection(Connection):
-    # TODO Detect stage
-    HOST = "cert.cloud.stage.redhat.com"
-    PORT = 443
+    HOST = config.get().api.host
+    PORT = config.get().api.port
     PATH = "/api/v1"
 
 
