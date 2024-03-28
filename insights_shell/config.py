@@ -1,5 +1,6 @@
 import configparser
 import dataclasses
+import functools
 import pathlib
 
 
@@ -26,13 +27,20 @@ class Proxy:
 class Network:
     proxy: Proxy
     identity_directory: pathlib.Path
+    """Path to the RHSM identity certificate keypair."""
+    ca_certificates: pathlib.Path
+    """TLS certificate bundle."""
+    insecure: bool
+    """Do not verify TLS certificates."""
 
     @property
     def identity_certificate(self) -> pathlib.Path:
+        """RHSM identity certificate."""
         return self.identity_directory / "cert.pem"
 
     @property
     def identity_key(self) -> pathlib.Path:
+        """RHSM identity private key."""
         return self.identity_directory / "key.pem"
 
 
@@ -40,10 +48,6 @@ class Network:
 class API:
     host: str
     port: int
-    insecure: bool
-    """Do not verify TLS certificates."""
-    ca_certificates: pathlib.Path
-    """TLS certificate bundle."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -72,38 +76,69 @@ class Configuration:
     logging: Logging
 
 
-def _get_network_configuration() -> Network:
-    cfg = configparser.ConfigParser()
-    cfg.read(f"{RHSM_CONFIGURATION_FILE_PATH!s}")
+_RHSM_CONFIGURATION_DEFAULTS: dict = {
+    "server": {
+        "proxy_hostname": "",
+        "proxy_scheme": "http",
+        "proxy_port": "",
+        "proxy_user": "",
+        "proxy_password": "",
+    },
+}
+
+_CONFIGURATION_DEFAULTS: dict = {
+    "api": {"host": "cert.cloud.redhat.com", "port": 443},
+    "network": {
+        "ca_certificates": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+        "insecure": False,
+    },
+    "egg": {
+        "egg_directory": "/var/lib/insights",
+        "metadata_directory": "/etc/insights-client/",
+        "gpg_public_key": "/etc/insights-client/redhattools.pub.gpg",
+        "canary": False,
+    },
+    "logging": {"insights_shell": "INFO", "insights_shell.api": "WARNING"},
+}
+
+
+@functools.cache
+def get() -> Configuration:
+    """Load the configuration."""
+
+    # TODO Support overwriting configuration with /etc/insights-client/insights-shell.conf.d/*
+    rhsm_cfg = configparser.ConfigParser()
+    rhsm_cfg.read_dict(_RHSM_CONFIGURATION_DEFAULTS)
+    rhsm_cfg.read(f"{RHSM_CONFIGURATION_FILE_PATH!s}")
 
     try:
-        port: int = cfg.getint("server", "proxy_port")
+        network_proxy_port: int = rhsm_cfg.getint("server", "proxy_port")
     except ValueError:
-        port = 0
+        network_proxy_port = 0
 
-    return Network(
-        proxy=Proxy(
-            host=cfg.get("server", "proxy_hostname"),
-            scheme=cfg.get("server", "proxy_scheme"),
-            port=port,
-            username=cfg.get("server", "proxy_user"),
-            password=cfg.get("server", "proxy_password"),
-        ),
-        identity_directory=pathlib.Path(cfg.get("rhsm", "consumerCertDir")),
-    )
-
-
-def get() -> Configuration:
     cfg = configparser.ConfigParser()
-    cfg.read("/etc/insights-client/insights-shell.conf")
+    cfg.read_dict(_CONFIGURATION_DEFAULTS)
+    cfg.read(f"{CONFIGURATION_FILE_PATH!s}")
+    directory = pathlib.Path("/etc/insights-client/insights-shell.conf.d")
+    for file in sorted(directory.glob("*.conf")):
+        cfg.read(f"{file!s}")
 
     return Configuration(
-        network=_get_network_configuration(),
+        network=Network(
+            ca_certificates=pathlib.Path(cfg.get("network", "ca_certificates")),
+            insecure=cfg.getboolean("network", "insecure"),
+            proxy=Proxy(
+                host=rhsm_cfg.get("server", "proxy_hostname"),
+                scheme=rhsm_cfg.get("server", "proxy_scheme"),
+                port=network_proxy_port,
+                username=rhsm_cfg.get("server", "proxy_user"),
+                password=rhsm_cfg.get("server", "proxy_password"),
+            ),
+            identity_directory=pathlib.Path(rhsm_cfg.get("rhsm", "consumerCertDir")),
+        ),
         api=API(
             host=cfg.get("api", "host"),
             port=cfg.getint("api", "port"),
-            insecure=cfg.getboolean("api", "insecure"),
-            ca_certificates=pathlib.Path(cfg.get("api", "ca_certificates")),
         ),
         egg=Egg(
             egg_directory=pathlib.Path(cfg.get("egg", "egg_directory")),
