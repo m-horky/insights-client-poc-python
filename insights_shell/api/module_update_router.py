@@ -4,6 +4,7 @@ import json
 from typing import Optional, Self
 
 from insights_shell import config
+from insights_shell.api import dto
 from insights_shell.api.connection import Connection
 
 
@@ -13,7 +14,7 @@ class Route:
 
     @classmethod
     def from_json(cls, data: dict) -> Self:
-        return cls(**data)
+        return dto.from_json(cls, data)
 
 
 class ModuleUpdateRouterConnection(Connection):

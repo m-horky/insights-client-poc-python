@@ -1,10 +1,14 @@
 import dataclasses
 import http.client
 import json
+import logging
 from typing import List, Optional, Self
 
 from insights_shell import config
+from insights_shell.api import dto
 from insights_shell.api.connection import Connection
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -32,10 +36,12 @@ class Host:
     created: str
     updated: str
     groups: list
+    tags: Optional[list]
+    system_profile: Optional[dict]
 
     @classmethod
-    def from_json(cls, data: dict) -> Self:
-        return cls(**data)
+    def from_json(cls, data: dict):
+        return dto.from_json(cls, data)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -49,7 +55,7 @@ class Hosts:
     @classmethod
     def from_json(cls, data: dict) -> Self:
         data["results"] = [Host.from_json(host) for host in data["results"]]
-        return cls(**data)
+        return dto.from_json(cls, data)
 
 
 class InventoryConnection(Connection):
@@ -64,11 +70,13 @@ class Inventory:
 
     def get_hosts(self, machine_id: str) -> list[Host]:
         # FIXME This should probably iterate over all the hosts? The endpoint is paginated.
+        logging.debug("Getting the list of hosts.")
         raw: http.client.HTTPResponse = self.connection.get(
             "/hosts", params={"insights_id": machine_id}
         )
         return Hosts.from_json(json.load(raw)).results
 
     def delete_host(self, insights_id: str) -> None:
+        logging.debug(f"Deleting host.")
         self.connection.delete(f"/hosts/{insights_id}")
         return None
