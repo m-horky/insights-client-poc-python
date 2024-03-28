@@ -32,6 +32,12 @@ def main():
         help=argparse.SUPPRESS,
     )
     parser.add_argument(
+        "--force-egg-update",
+        action="store_true",
+        default=False,
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
         "--insecure-egg",
         action="store_true",
         default=False,
@@ -69,7 +75,9 @@ def main():
             sys.exit(1)
 
     if not args.skip_egg_update:
-        egg.update()
+        _: egg.EggUpdateResult = egg.update(
+            force=args.force_egg_update, insecure=args.insecure_egg
+        )
 
     commands[args.command].run(args)
 

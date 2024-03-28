@@ -1,3 +1,4 @@
+import enum
 import http.client
 import logging
 import os.path
@@ -13,16 +14,27 @@ from insights_shell.api import insights
 
 logger = logging.getLogger(__name__)
 
-UNTRUSTED_EGG_PATH = pathlib.Path("/var/lib/insights/untrusted.egg")
-UNTRUSTED_SIG_PATH = pathlib.Path("/var/lib/insights/untrusted.egg.asc")
-TRUSTED_EGG_PATH = pathlib.Path("/var/lib/insights/current.egg")
-TRUSTED_SIG_PATH = pathlib.Path("/var/lib/insights/current.egg.asc")
+UNTRUSTED_EGG_PATH: pathlib.Path = config.get().egg.egg_directory / "untrusted.egg"
+UNTRUSTED_SIG_PATH: pathlib.Path = config.get().egg.egg_directory / "untrusted.egg.asc"
+TRUSTED_EGG_PATH: pathlib.Path = config.get().egg.egg_directory / "current.egg"
+TRUSTED_SIG_PATH: pathlib.Path = config.get().egg.egg_directory / "current.egg.asc"
 
-EGG_ETAG_PATH = pathlib.Path("/etc/insights-client/.insights-core.etag")
-SIG_ETAG_PATH = pathlib.Path("/etc/insights-client/.insights-core-gpg-sig.etag")
+EGG_ETAG_PATH: pathlib.Path = config.get().egg.metadata_directory / ".insights-core.etag"
+SIG_ETAG_PATH: pathlib.Path = config.get().egg.metadata_directory / ".insights-core-gpg-sig.etag"
+
 
 TEMPORARY_GPG_HOME_PARENT_DIRECTORY = pathlib.Path("/var/lib/insights/")
-GPG_KEY_PATH = pathlib.Path("/etc/insights-client/redhattools.pub.gpg")
+
+
+class EggUpdateResult(enum.Enum):
+    NO_UPDATE_NEEDED = "The egg is already up to date."
+    UPDATE_SUCCESS = "The egg has been updated to newer version."
+    FETCH_FAILED = "The egg or its signature could not be downloaded."
+    VERIFICATION_FAILED = "The egg signature could not be verified."
+
+    @property
+    def ok(self) -> bool:
+        return self in (type(self).UPDATE_SUCCESS, type(self).NO_UPDATE_NEEDED)
 
 
 def _get_route() -> module_update_router.Route:
@@ -36,11 +48,8 @@ def _get_route() -> module_update_router.Route:
     return route
 
 
-def _update_egg(*, route: module_update_router.Route, force: bool = False) -> bool:
-    """Update the egg binary.
-
-    :returns bool: `True` if the egg was updated, `False` otherwise.
-    """
+def _update_egg(*, route: module_update_router.Route, force: bool = False) -> EggUpdateResult:
+    """Update the egg binary."""
     etag: Optional[str] = None
     if os.path.exists(EGG_ETAG_PATH):
         with open(EGG_ETAG_PATH, "r") as f:
@@ -50,10 +59,10 @@ def _update_egg(*, route: module_update_router.Route, force: bool = False) -> bo
     resp_egg: http.client.HTTPResponse = insights.Insights().get_egg(route=route, etag=etag)
 
     new_etag: str = resp_egg.headers.get("Etag")
-    if resp_egg.status == 304 or etag == new_etag:
-        logger.info("Local egg is already up to date.")
+    if etag == new_etag:
+        logger.debug("Etag matches, we don't need to download anything.")
         if not force:
-            return False
+            return EggUpdateResult.NO_UPDATE_NEEDED
         logger.debug("Force downloading the egg anyway.")
 
     logger.debug(f"Updating egg etag {EGG_ETAG_PATH!s}: {etag} -> {new_etag}.")
@@ -65,7 +74,7 @@ def _update_egg(*, route: module_update_router.Route, force: bool = False) -> bo
     with UNTRUSTED_EGG_PATH.open("wb") as f:
         f.write(egg)
 
-    return True
+    return EggUpdateResult.UPDATE_SUCCESS
 
 
 def _update_egg_signature(*, route: module_update_router.Route):
@@ -103,14 +112,22 @@ def _verify_egg_signature(egg: pathlib.Path, signature: pathlib.Path) -> bool:
 
     :returns bool: `True` if the signature matches.
     """
+    logger.info("Verifying the egg signature.")
     home = tempfile.mkdtemp(dir=TEMPORARY_GPG_HOME_PARENT_DIRECTORY)
 
     import_process = subprocess.run(
-        ["/usr/bin/gpg", "--homedir", home, "--import", GPG_KEY_PATH],
+        ["/usr/bin/gpg", "--homedir", home, "--import", config.get().egg.gpg_public_key],
         capture_output=True,
         text=True,
     )
     if import_process.returncode != 0:
+        stdout: str = "\n".join(
+            [
+                *[f"... stdout: {line}" for line in import_process.stdout.splitlines()],
+                *[f"... stderr: {line}" for line in import_process.stderr.splitlines()],
+            ]
+        )
+        logger.debug(f"Could not import the GPG key.\n{stdout}")
         _remove_gpg_home(home)
         return False
 
@@ -120,16 +137,25 @@ def _verify_egg_signature(egg: pathlib.Path, signature: pathlib.Path) -> bool:
         text=True,
     )
     if verify_process.returncode != 0:
+        stdout: str = "\n".join(
+            [
+                *[f"... stdout: {line}" for line in verify_process.stdout.splitlines()],
+                *[f"... stderr: {line}" for line in verify_process.stderr.splitlines()],
+            ]
+        )
+        logger.debug(f"Verification of the GPG signature failed.\n{stdout}")
         _remove_gpg_home(home)
         return False
 
     return True
 
 
-def update():
-    """Update the egg to a new release."""
-    # TODO Allow force redownload of the egg
-    # TODO Allow to skip the GPG verification
+def update(*, force: bool = False, insecure: bool = False) -> EggUpdateResult:
+    """Update the egg to a new release.
+
+    :param force: Always download the egg, even if it already exists locally.
+    :param insecure: Do not validate the GPG signature.
+    """
     logger.info("Updating the Egg.")
     # 1. Fetch the egg and signature into untrusted
     # 2. Verify the signature
@@ -137,16 +163,35 @@ def update():
 
     route: module_update_router.Route = _get_route()
 
-    updated: bool = _update_egg(route=route)
-    if updated:
-        _update_egg_signature(route=route)
+    try:
+        updated: EggUpdateResult = _update_egg(route=route, force=force)
+    except Exception:
+        logger.exception("Egg update failed.")
+        return EggUpdateResult.FETCH_FAILED
 
-    ok: bool = _verify_egg_signature(UNTRUSTED_EGG_PATH, UNTRUSTED_SIG_PATH)
-    if not ok:
-        # TODO Delete the files
-        pass
-        return
+    if updated == EggUpdateResult.NO_UPDATE_NEEDED:
+        logger.info("Local egg is already up to date.")
+        return updated
+
+    try:
+        _update_egg_signature(route=route)
+    except Exception:
+        logger.exception("Egg signature update failed.")
+        return EggUpdateResult.FETCH_FAILED
+
+    if insecure:
+        logger.warning("Skipping the egg signature verification.")
+    else:
+        ok: bool = _verify_egg_signature(UNTRUSTED_EGG_PATH, UNTRUSTED_SIG_PATH)
+        if not ok:
+            logger.debug(
+                "Cryptographic verification failed, removing both the egg and its signature."
+            )
+            UNTRUSTED_EGG_PATH.unlink(missing_ok=True)
+            UNTRUSTED_SIG_PATH.unlink(missing_ok=True)
+            return EggUpdateResult.VERIFICATION_FAILED
 
     logger.debug("Moving the verified egg in place.")
     shutil.move(UNTRUSTED_EGG_PATH, TRUSTED_EGG_PATH)
     shutil.move(UNTRUSTED_SIG_PATH, TRUSTED_SIG_PATH)
+    return EggUpdateResult.UPDATE_SUCCESS
