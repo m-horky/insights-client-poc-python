@@ -4,6 +4,7 @@ import sys
 from typing import Self
 
 import insights_shell.__about__
+from insights_shell._shell import egg
 from insights_shell._cmd import abstract
 
 
@@ -18,9 +19,14 @@ class VersionCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
+        try:
+            egg_version: str = egg.Egg.version(include_commit=True)
+        except RuntimeError:
+            egg_version = "unknown"
+
         versions = {
             "shell": insights_shell.__about__.VERSION,
-            "egg": "unknown",
+            "egg": egg_version,
         }
 
         if args.format == "human":

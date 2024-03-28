@@ -107,6 +107,16 @@ def _remove_gpg_home(home: str) -> None:
     shutil.rmtree(home)
 
 
+def _format_subprocess_std(process: subprocess.CompletedProcess) -> str:
+    """Format the standard output and error of a subprocess for easy logging."""
+    return "\n".join(
+        [
+            *[f"... stdout: {line}" for line in process.stdout.splitlines()],
+            *[f"... stderr: {line}" for line in process.stderr.splitlines()],
+        ]
+    )
+
+
 def _verify_egg_signature(egg: pathlib.Path, signature: pathlib.Path) -> bool:
     """Verify the GPG signature of an egg.
 
@@ -121,13 +131,7 @@ def _verify_egg_signature(egg: pathlib.Path, signature: pathlib.Path) -> bool:
         text=True,
     )
     if import_process.returncode != 0:
-        stdout: str = "\n".join(
-            [
-                *[f"... stdout: {line}" for line in import_process.stdout.splitlines()],
-                *[f"... stderr: {line}" for line in import_process.stderr.splitlines()],
-            ]
-        )
-        logger.debug(f"Could not import the GPG key.\n{stdout}")
+        logger.debug(f"Could not import the GPG key.\n{_format_subprocess_std(import_process)}")
         _remove_gpg_home(home)
         return False
 
@@ -137,13 +141,9 @@ def _verify_egg_signature(egg: pathlib.Path, signature: pathlib.Path) -> bool:
         text=True,
     )
     if verify_process.returncode != 0:
-        stdout: str = "\n".join(
-            [
-                *[f"... stdout: {line}" for line in verify_process.stdout.splitlines()],
-                *[f"... stderr: {line}" for line in verify_process.stderr.splitlines()],
-            ]
+        logger.debug(
+            f"Verification of the GPG signature failed.\n{_format_subprocess_std(verify_process)}"
         )
-        logger.debug(f"Verification of the GPG signature failed.\n{stdout}")
         _remove_gpg_home(home)
         return False
 
@@ -195,3 +195,75 @@ def update(*, force: bool = False, insecure: bool = False) -> EggUpdateResult:
     shutil.move(UNTRUSTED_EGG_PATH, TRUSTED_EGG_PATH)
     shutil.move(UNTRUSTED_SIG_PATH, TRUSTED_SIG_PATH)
     return EggUpdateResult.UPDATE_SUCCESS
+
+
+class Egg:
+    @classmethod
+    def get(cls) -> pathlib.Path:
+        """Get the path to the egg that should be used.
+
+        If en `EGG` environment variable is set, the path it points to will be used as the egg.
+        If it does not exist, `RuntimeError` will be raised.
+
+        Otherwise, the CURRENT (the latest downloaded version) or the RPM (the egg shipped with
+        the RPM package) will be used.
+
+        :raises RuntimeError: The egg was found.
+        """
+        env = os.environ.get("EGG", None)
+        if env is not None:
+            env_egg = pathlib.Path(env)
+            if env_egg.exists():
+                logger.debug("Using the ENV egg.")
+                return env_egg
+            logger.error(f"EGG={env} was specified, but could not be found.")
+            raise RuntimeError("The ENV egg could not be found.")
+
+        paths: dict[str, pathlib.Path] = {
+            "CURRENT": TRUSTED_EGG_PATH,
+            "RPM": config.get().egg.metadata_directory / "rpm.egg",
+        }
+
+        for name, path in paths.items():
+            if path.exists():
+                logger.debug(f"Using the {name} egg.")
+                return path
+
+        raise RuntimeError("No egg found.")
+
+    @classmethod
+    def version(
+        cls,
+        path: Optional[pathlib.Path] = None,
+        *,
+        include_release: bool = True,
+        include_commit: bool = False,
+    ) -> str:
+        """Get the version of the egg.
+
+        :param path: Path to the egg. If not specified, egg will be discovered dynamically.
+        :param include_release: Include the egg release, not just the MAJOR.MINOR.PATCH version.
+        :raises RuntimeError: The subprocess failed.
+        """
+        if path is None:
+            path = cls.get()
+
+        query: str = "insights.package_info['VERSION']"
+        if include_release:
+            query += "+'-'+insights.package_info['RELEASE']"
+        if include_commit:
+            query += "+'+'+insights.package_info['COMMIT']"
+
+        version_process = subprocess.run(
+            ["python3", "-c", f"import insights; print({query})"],
+            env={"PYTHONPATH": f"{path!s}"},
+            capture_output=True,
+            text=True,
+        )
+        if version_process.returncode != 0:
+            logger.error(
+                f"Could not query for the egg version.\n{_format_subprocess_std(version_process)}"
+            )
+            raise RuntimeError("Could not query for the egg version.")
+
+        return version_process.stdout.strip()
