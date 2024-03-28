@@ -1,11 +1,13 @@
 import enum
 import http.client
+import json
 import logging
 import os.path
 import pathlib
 import shutil
 import subprocess
 import tempfile
+import time
 from typing import Optional
 
 from insights_shell import config
@@ -111,8 +113,8 @@ def _format_subprocess_std(process: subprocess.CompletedProcess) -> str:
     """Format the standard output and error of a subprocess for easy logging."""
     return "\n".join(
         [
-            *[f"... stdout: {line}" for line in process.stdout.splitlines()],
-            *[f"... stderr: {line}" for line in process.stderr.splitlines()],
+            *[f"...out: {line}" for line in process.stdout.splitlines()],
+            *[f"...err: {line}" for line in process.stderr.splitlines()],
         ]
     )
 
@@ -242,7 +244,10 @@ class Egg:
         """Get the version of the egg.
 
         :param path: Path to the egg. If not specified, egg will be discovered dynamically.
-        :param include_release: Include the egg release, not just the MAJOR.MINOR.PATCH version.
+        :param include_release:
+            Include the egg release, not just the MAJOR.MINOR.PATCH version.
+        :param include_commit:
+            Include the egg release commit, not just the MAJOR.MINOR.PATCH version.
         :raises RuntimeError: The subprocess failed.
         """
         if path is None:
@@ -267,3 +272,32 @@ class Egg:
             raise RuntimeError("Could not query for the egg version.")
 
         return version_process.stdout.strip()
+
+    @classmethod
+    def commands(cls) -> list[str]:
+        return cls.run("help")["commands"]
+
+    @classmethod
+    def run(cls, command: str, path: Optional[pathlib.Path] = None) -> dict:
+        """Run a specific Core command."""
+        if path is None:
+            path = cls.get()
+
+        logger.debug(f"Running Core command '{command}'.")
+
+        now: float = time.time()
+        run_process = subprocess.run(
+            ["python3", "-m", "insights.client.phase.v2", command],
+            env={"PYTHONPATH": f"{path!s}"},
+            capture_output=True,
+            text=True,
+        )
+        delta: float = time.time() - now
+        if run_process.returncode != 0:
+            logger.error(f"Could not run Core command.\n{_format_subprocess_std(run_process)}")
+            raise RuntimeError("Could not run Core.")
+
+        core_debug: str = "\n".join(f"... {line}" for line in run_process.stderr.splitlines())
+        logger.debug(f"Core command '{command}' took {delta * 100:.1f} ms.\n{core_debug}")
+
+        return json.loads(run_process.stdout)

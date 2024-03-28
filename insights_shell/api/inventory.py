@@ -77,6 +77,22 @@ class Inventory:
         return Hosts.from_json(json.load(raw)).results
 
     def delete_host(self, insights_id: str) -> None:
-        logging.debug(f"Deleting host.")
+        logging.debug("Deleting host.")
         self.connection.delete(f"/hosts/{insights_id}")
         return None
+
+    def checkin(self, facts: dict) -> Host:
+        logging.debug("Uploading canonical facts.")
+        raw: http.client.HTTPResponse = self.connection.post(
+            "/hosts/checkin",
+            headers={"Content-Type": "application/json"},
+            data=json.dumps(facts),
+        )
+
+        if raw.status == 201:
+            return Host.from_json(json.load(raw))
+
+        logging.debug(
+            f"API returned unexpected status code {raw.status}. Response: {raw.read()}."
+        )
+        raise LookupError(f"Facts were rejected by the server with status code {raw.status}.")
