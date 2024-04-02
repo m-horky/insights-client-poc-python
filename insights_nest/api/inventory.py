@@ -78,18 +78,19 @@ class Inventory:
         insights_id: str,
         *,
         display_name: Optional[str] = None,
-        ansible_host: Optional[str] = None,
+        ansible_name: Optional[str] = None,
     ) -> None:
         logging.debug("Updating the host.")
 
         data = {}
         if display_name:
             data["display_name"] = display_name
-        if ansible_host:
-            data["ansible_host"] = ansible_host
+        if ansible_name:
+            data["ansible_host"] = ansible_name
 
         raw: Response = self.connection.patch(
             f"/hosts/{insights_id}",
+            headers={"Content-Type": "application/json"},
             data=json.dumps(data),
         )
         return
