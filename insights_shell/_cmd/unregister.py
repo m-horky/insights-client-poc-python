@@ -3,6 +3,7 @@ import datetime
 import glob
 import logging
 import os.path
+import shutil
 from typing import Self
 
 from insights_shell.api import inventory
@@ -59,7 +60,10 @@ class UnregisterCommand(abstract.AbstractCommand):
         if var_lib_files:
             logger.debug("Deleting files in /var/lib/insights/")
             for file in var_lib_files:
-                os.remove(file)
+                if os.path.isfile(file):
+                    os.remove(file)
+                elif os.path.isdir(file):
+                    shutil.rmtree(file)
 
         if os.path.exists("/etc/rhsm/facts/insights-client.json"):
             logger.debug("Deleting /etc/rhsm/facts/insights-client.json")
