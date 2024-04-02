@@ -17,7 +17,7 @@ from insights_shell._cmd.scan_compliance import ComplianceScanCommand
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format="[{levelname:<7}] {filename}:{lineno} {message}\033[0m",
+    format="[{levelname:<7}] {module}:{lineno} {message}\033[0m",
     style="{",
 )
 logger = logging.getLogger(__name__)
