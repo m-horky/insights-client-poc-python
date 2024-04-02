@@ -76,6 +76,27 @@ class Inventory:
         )
         return Hosts.from_json(json.load(raw)).results
 
+    def update_host(
+        self,
+        insights_id: str,
+        *,
+        display_name: Optional[str] = None,
+        ansible_host: Optional[str] = None,
+    ) -> Host:
+        logging.debug("Updating the host.")
+
+        data = {}
+        if display_name:
+            data["display_name"] = display_name
+        if ansible_host:
+            data["ansible_host"] = ansible_host
+
+        raw: http.client.HTTPResponse = self.connection.patch(
+            f"/hosts/{insights_id}",
+            data=json.dumps(data),
+        )
+        return Host.from_json(json.load(raw))
+
     def delete_host(self, insights_id: str) -> None:
         logging.debug("Deleting host.")
         self.connection.delete(f"/hosts/{insights_id}")
