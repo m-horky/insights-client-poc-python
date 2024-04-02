@@ -1,5 +1,4 @@
 import enum
-import http.client
 import json
 import logging
 import os.path
@@ -13,6 +12,7 @@ from typing import Optional
 from insights_nest import config
 from insights_nest.api import module_update_router
 from insights_nest.api import insights
+from insights_nest.api.connection import Response
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +58,9 @@ def _update_egg(*, route: module_update_router.Route, force: bool = False) -> Eg
             etag = f.read()
 
     logger.debug("Fetching the egg.")
-    resp_egg: http.client.HTTPResponse = insights.Insights().get_egg(route=route, etag=etag)
+    egg: Response = insights.Insights().get_egg(route=route, etag=etag)
 
-    new_etag: str = resp_egg.headers.get("Etag", "")
+    new_etag: str = egg.headers.get("Etag", "")
     if etag == new_etag:
         logger.debug("Etag matches, we don't need to download anything.")
         if not force:
@@ -71,10 +71,9 @@ def _update_egg(*, route: module_update_router.Route, force: bool = False) -> Eg
     with EGG_ETAG_PATH.open("w") as f:
         f.write(new_etag)
 
-    egg: bytes = resp_egg.read()
-    logger.debug(f"Saving the egg into {UNTRUSTED_EGG_PATH!s} (size is {len(egg)} bytes).")
+    logger.debug(f"Saving the egg into {UNTRUSTED_EGG_PATH!s} (size is {len(egg.data)} bytes).")
     with UNTRUSTED_EGG_PATH.open("wb") as f:
-        f.write(egg)
+        f.write(egg.data)
 
     return EggUpdateResult.UPDATE_SUCCESS
 
@@ -82,14 +81,13 @@ def _update_egg(*, route: module_update_router.Route, force: bool = False) -> Eg
 def _update_egg_signature(*, route: module_update_router.Route):
     """Update the egg binary signature."""
     logger.debug("Fetching the egg signature.")
-    resp_sig: http.client.HTTPResponse = insights.Insights().get_egg_signature(route=route)
-    signature: bytes = resp_sig.read()
+    signature: Response = insights.Insights().get_egg_signature(route=route)
 
     logger.debug(
-        f"Saving the egg signature into {UNTRUSTED_SIG_PATH!s} (size is {len(signature)} bytes)."
+        f"Saving the egg signature into {UNTRUSTED_SIG_PATH!s} (size is {len(signature.data)} bytes)."
     )
     with UNTRUSTED_SIG_PATH.open("wb") as f:
-        f.write(signature)
+        f.write(signature.data)
 
 
 def _remove_gpg_home(home: str) -> None:

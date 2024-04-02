@@ -1,5 +1,8 @@
+import dataclasses
 import http.client
+import json
 import logging
+import os
 import ssl
 import time
 import urllib.request
@@ -9,6 +12,25 @@ from typing import Optional
 from insights_nest import config
 
 logger = logging.getLogger(__name__)
+
+
+# TODO Create Request dataclass and add it as a field to the Response?
+
+
+@dataclasses.dataclass(frozen=True)
+class Response:
+    status: int
+    headers: dict[str, str]
+    data: bytes
+
+    def is_json(self) -> bool:
+        for k, v in self.headers.items():
+            if k.lower() == "content-type" and v.lower() == "application/json":
+                return True
+        return False
+
+    def json(self) -> dict:
+        return json.loads(self.data)
 
 
 class Connection:
@@ -45,7 +67,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data: Optional[str] = None,
-    ) -> http.client.HTTPResponse:
+    ) -> Response:
         url = f"{self.PATH}{endpoint}"
         if params:
             url += f"?{urllib.parse.urlencode(params)}"
@@ -59,11 +81,20 @@ class Connection:
         conn.request(method=method, url=url, headers=headers, body=data)
 
         now: float = time.time()
-        response: http.client.HTTPResponse = conn.getresponse()
+        raw: http.client.HTTPResponse = conn.getresponse()
         delta: float = time.time() - now
-        logger.debug(f"Response with code {response.status} after {delta * 100:.1f} ms")
+        logger.debug(f"Response with code {raw.status} after {delta * 100:.1f} ms")
 
-        return response
+        rich = Response(
+            status=raw.status,
+            headers=dict(raw.headers.items()),
+            data=raw.read(),
+        )
+
+        if os.environ.get("NEST_DEBUG_HTTP", None) is not None:
+            print("NEST_DEBUG_HTTP", rich)
+
+        return rich
 
     def get(
         self,
@@ -72,7 +103,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data: Optional[str] = None,
-    ) -> http.client.HTTPResponse:
+    ) -> Response:
         return self._request("GET", endpoint, params=params, headers=headers, data=data)
 
     def put(
@@ -82,7 +113,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data: Optional[str] = None,
-    ) -> http.client.HTTPResponse:
+    ) -> Response:
         return self._request("PUT", endpoint, params=params, headers=headers, data=data)
 
     def post(
@@ -92,7 +123,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data: Optional[str] = None,
-    ) -> http.client.HTTPResponse:
+    ) -> Response:
         return self._request("POST", endpoint, params=params, headers=headers, data=data)
 
     def patch(
@@ -102,7 +133,7 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data: Optional[str] = None,
-    ) -> http.client.HTTPResponse:
+    ) -> Response:
         return self._request("PATCH", endpoint, params=params, headers=headers, data=data)
 
     def delete(
@@ -112,5 +143,5 @@ class Connection:
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
         data: Optional[str] = None,
-    ) -> http.client.HTTPResponse:
+    ) -> Response:
         return self._request("DELETE", endpoint, params=params, headers=headers, data=data)

@@ -1,12 +1,11 @@
 import dataclasses
-import http.client
 import json
 import logging
 from typing import List, Optional, Self
 
 from insights_nest import config
 from insights_nest.api import dto
-from insights_nest.api.connection import Connection
+from insights_nest.api.connection import Connection, Response
 
 logger = logging.getLogger(__name__)
 
@@ -71,10 +70,8 @@ class Inventory:
     def get_hosts(self, machine_id: str) -> list[Host]:
         # FIXME This should probably iterate over all the hosts? The endpoint is paginated.
         logging.debug("Getting the list of hosts.")
-        raw: http.client.HTTPResponse = self.connection.get(
-            "/hosts", params={"insights_id": machine_id}
-        )
-        return Hosts.from_json(json.load(raw)).results
+        raw: Response = self.connection.get("/hosts", params={"insights_id": machine_id})
+        return Hosts.from_json(raw.json()).results
 
     def update_host(
         self,
@@ -82,7 +79,7 @@ class Inventory:
         *,
         display_name: Optional[str] = None,
         ansible_host: Optional[str] = None,
-    ) -> Host:
+    ) -> None:
         logging.debug("Updating the host.")
 
         data = {}
@@ -91,11 +88,11 @@ class Inventory:
         if ansible_host:
             data["ansible_host"] = ansible_host
 
-        raw: http.client.HTTPResponse = self.connection.patch(
+        raw: Response = self.connection.patch(
             f"/hosts/{insights_id}",
             data=json.dumps(data),
         )
-        return Host.from_json(json.load(raw))
+        return
 
     def delete_host(self, insights_id: str) -> None:
         logging.debug("Deleting host.")
@@ -104,17 +101,17 @@ class Inventory:
 
     def checkin(self, facts: dict) -> Host:
         logging.debug("Uploading canonical facts.")
-        raw: http.client.HTTPResponse = self.connection.post(
+        raw: Response = self.connection.post(
             "/hosts/checkin",
             headers={"Content-Type": "application/json"},
             data=json.dumps(facts),
         )
 
         if raw.status == 201:
-            return Host.from_json(json.load(raw))
+            return Host.from_json(raw.json())
 
         logging.debug(
             f"API returned unexpected status code {raw.status}. "
-            f"Response: {raw.read().decode('utf-8')}."
+            f"Response: {raw.data.decode('utf-8')}."
         )
         raise LookupError(f"Facts were rejected by the server with status code {raw.status}.")

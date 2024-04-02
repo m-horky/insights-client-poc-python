@@ -35,3 +35,8 @@ pre-commit install
 ## License
 
 To be determined.
+
+
+## Debugging
+
+- `NEST_DEBUG_HTTP`: Print HTTP responses.
