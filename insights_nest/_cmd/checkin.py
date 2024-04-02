@@ -5,8 +5,8 @@ from typing import Self
 
 from insights_nest.api import inventory
 from insights_nest._cmd import abstract
-from insights_nest._shell import egg
-from insights_nest._shell import system
+from insights_nest._core import egg
+from insights_nest._core import system
 
 
 class CheckinCommand(abstract.AbstractCommand):

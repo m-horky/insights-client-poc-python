@@ -2,7 +2,7 @@ import argparse
 import logging
 import sys
 
-from insights_nest._shell import egg
+from insights_nest._core import egg
 
 import insights_nest._cmd.abstract
 from insights_nest._cmd.version import VersionCommand

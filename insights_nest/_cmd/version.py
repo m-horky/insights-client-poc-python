@@ -4,7 +4,7 @@ import sys
 from typing import Self
 
 import insights_nest.__about__
-from insights_nest._shell import egg
+from insights_nest._core import egg
 from insights_nest._cmd import abstract
 
 

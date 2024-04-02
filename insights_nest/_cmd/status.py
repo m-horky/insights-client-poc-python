@@ -4,7 +4,7 @@ import sys
 from typing import Self
 
 from insights_nest._cmd import abstract
-from insights_nest._shell import system
+from insights_nest._core import system
 
 
 class StatusCommand(abstract.AbstractCommand):
