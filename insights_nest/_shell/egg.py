@@ -10,9 +10,9 @@ import tempfile
 import time
 from typing import Optional
 
-from insights_shell import config
-from insights_shell.api import module_update_router
-from insights_shell.api import insights
+from insights_nest import config
+from insights_nest.api import module_update_router
+from insights_nest.api import insights
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ import urllib.request
 import urllib.parse
 from typing import Optional
 
-from insights_shell import config
+from insights_nest import config
 
 logger = logging.getLogger(__name__)
 

@@ -2,17 +2,17 @@ import argparse
 import logging
 import sys
 
-from insights_shell._shell import egg
+from insights_nest._shell import egg
 
-import insights_shell._cmd.abstract
-from insights_shell._cmd.version import VersionCommand
-from insights_shell._cmd.status import StatusCommand
-from insights_shell._cmd.identity import IdentityCommand
-from insights_shell._cmd.register import RegisterCommand
-from insights_shell._cmd.unregister import UnregisterCommand
-from insights_shell._cmd.checkin import CheckinCommand
-from insights_shell._cmd.scan import ScanCommand
-from insights_shell._cmd.scan_compliance import ComplianceScanCommand
+import insights_nest._cmd.abstract
+from insights_nest._cmd.version import VersionCommand
+from insights_nest._cmd.status import StatusCommand
+from insights_nest._cmd.identity import IdentityCommand
+from insights_nest._cmd.register import RegisterCommand
+from insights_nest._cmd.unregister import UnregisterCommand
+from insights_nest._cmd.checkin import CheckinCommand
+from insights_nest._cmd.scan import ScanCommand
+from insights_nest._cmd.scan_compliance import ComplianceScanCommand
 
 
 logging.basicConfig(
@@ -44,7 +44,7 @@ def main():
         help=argparse.SUPPRESS,
     )
 
-    commands: dict[str, insights_shell._cmd.abstract.AbstractCommand] = {}
+    commands: dict[str, insights_nest._cmd.abstract.AbstractCommand] = {}
 
     subparsers = parser.add_subparsers(dest="command")
     for subcommand in [

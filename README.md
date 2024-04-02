@@ -1,4 +1,4 @@
-# insights-shell
+# insights-nest
 
 A next-generation implementation of [`insights-client`](https://github.com/RedHatInsights/insights-client/).
 
@@ -9,7 +9,7 @@ A next-generation implementation of [`insights-client`](https://github.com/RedHa
 2. Clone both of them into the same directory.
 
     ```bash
-    git clone git@github.com:$YOU/insights-shell.git
+    git clone git@github.com:$YOU/insights-nest.git
     git clone git@github.com:$YOU/insights-core.git
     ```
 
@@ -17,7 +17,7 @@ A next-generation implementation of [`insights-client`](https://github.com/RedHa
 4. Run the client.
 
     ```bash
-    sudo PYTHONPATH=. EGG=../insights-core python3 insights_shell/__init__.py --insecure-egg ...
+    sudo PYTHONPATH=. EGG=../insights-core python3 insights_nest/__init__.py --insecure-egg ...
     ```
 
 
@@ -26,7 +26,7 @@ A next-generation implementation of [`insights-client`](https://github.com/RedHa
 The easiest way to use the `ruff` linter and formatter is through [`pre-commit`](https://pre-commit.org):
 
 ```bash
-ruff format && ruff check
+ruff format && ruff check && mypy .
 # ...to run it automatically,
 pre-commit install
 ```

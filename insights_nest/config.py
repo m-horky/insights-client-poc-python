@@ -4,7 +4,8 @@ import functools
 import pathlib
 
 
-CONFIGURATION_FILE_PATH = pathlib.Path("/etc/insights-client/insights-shell.conf")
+CONFIGURATION_FILE_PATH = pathlib.Path("/etc/insights-client/insights-nest.conf")
+CONFIGURATION_DIRECTORY_PATH = pathlib.Path("/etc/insights-client/insights-nest.conf.d/")
 RHSM_CONFIGURATION_FILE_PATH = pathlib.Path("/etc/rhsm/rhsm.conf")
 
 
@@ -98,7 +99,7 @@ _CONFIGURATION_DEFAULTS: dict = {
         "gpg_public_key": "/etc/insights-client/redhattools.pub.gpg",
         "canary": False,
     },
-    "logging": {"insights_shell": "INFO", "insights_shell.api": "WARNING"},
+    "logging": {"insights_nest": "INFO", "insights_nest.api": "WARNING"},
 }
 
 
@@ -106,7 +107,6 @@ _CONFIGURATION_DEFAULTS: dict = {
 def get() -> Configuration:
     """Load the configuration."""
 
-    # TODO Support overwriting configuration with /etc/insights-client/insights-shell.conf.d/*
     rhsm_cfg = configparser.ConfigParser()
     rhsm_cfg.read_dict(_RHSM_CONFIGURATION_DEFAULTS)
     rhsm_cfg.read(f"{RHSM_CONFIGURATION_FILE_PATH!s}")
@@ -119,8 +119,7 @@ def get() -> Configuration:
     cfg = configparser.ConfigParser()
     cfg.read_dict(_CONFIGURATION_DEFAULTS)
     cfg.read(f"{CONFIGURATION_FILE_PATH!s}")
-    directory = pathlib.Path("/etc/insights-client/insights-shell.conf.d")
-    for file in sorted(directory.glob("*.conf")):
+    for file in sorted(CONFIGURATION_DIRECTORY_PATH.glob("*.conf")):
         cfg.read(f"{file!s}")
 
     return Configuration(

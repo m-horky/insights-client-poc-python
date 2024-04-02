@@ -6,9 +6,9 @@ import os.path
 import shutil
 from typing import Self
 
-from insights_shell.api import inventory
-from insights_shell._cmd import abstract
-from insights_shell._shell import system
+from insights_nest.api import inventory
+from insights_nest._cmd import abstract
+from insights_nest._shell import system
 
 
 logger = logging.getLogger(__name__)

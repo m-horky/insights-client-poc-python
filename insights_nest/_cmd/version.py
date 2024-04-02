@@ -3,9 +3,9 @@ import json
 import sys
 from typing import Self
 
-import insights_shell.__about__
-from insights_shell._shell import egg
-from insights_shell._cmd import abstract
+import insights_nest.__about__
+from insights_nest._shell import egg
+from insights_nest._cmd import abstract
 
 
 class VersionCommand(abstract.AbstractCommand):
@@ -25,7 +25,7 @@ class VersionCommand(abstract.AbstractCommand):
             egg_version = "unknown"
 
         versions = {
-            "shell": insights_shell.__about__.VERSION,
+            "shell": insights_nest.__about__.VERSION,
             "egg": egg_version,
         }
 

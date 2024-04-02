@@ -3,8 +3,8 @@ import json
 import sys
 from typing import Self
 
-from insights_shell._cmd import abstract
-from insights_shell._shell import system
+from insights_nest._cmd import abstract
+from insights_nest._shell import system
 
 
 class StatusCommand(abstract.AbstractCommand):

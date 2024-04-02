@@ -3,9 +3,9 @@ import http.client
 import json
 from typing import Optional, Self
 
-from insights_shell import config
-from insights_shell.api import dto
-from insights_shell.api.connection import Connection
+from insights_nest import config
+from insights_nest.api import dto
+from insights_nest.api.connection import Connection
 
 
 @dataclasses.dataclass(frozen=True)

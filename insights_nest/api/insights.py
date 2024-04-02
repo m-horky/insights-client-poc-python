@@ -1,9 +1,9 @@
 import http.client
 from typing import Optional
 
-from insights_shell import config
-from insights_shell.api.connection import Connection
-from insights_shell.api.module_update_router import Route
+from insights_nest import config
+from insights_nest.api.connection import Connection
+from insights_nest.api.module_update_router import Route
 
 
 class InsightsConnection(Connection):

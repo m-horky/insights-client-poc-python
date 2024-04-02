@@ -1,7 +1,7 @@
 import os.path
 import logging
 
-from insights_shell.api import inventory
+from insights_nest.api import inventory
 
 
 logger = logging.getLogger(__name__)
