@@ -5,14 +5,15 @@ import sys
 from insights_nest._core import egg
 
 import insights_nest._cmd.abstract
-from insights_nest._cmd.version import VersionCommand
-from insights_nest._cmd.status import StatusCommand
-from insights_nest._cmd.identity import IdentityCommand
-from insights_nest._cmd.register import RegisterCommand
-from insights_nest._cmd.unregister import UnregisterCommand
 from insights_nest._cmd.checkin import CheckinCommand
+from insights_nest._cmd.identity import IdentityCommand
+from insights_nest._cmd.playbook_verifier import VerifyPlaybookCommand
+from insights_nest._cmd.register import RegisterCommand
 from insights_nest._cmd.scan import ScanCommand
 from insights_nest._cmd.scan_compliance import ComplianceScanCommand
+from insights_nest._cmd.status import StatusCommand
+from insights_nest._cmd.unregister import UnregisterCommand
+from insights_nest._cmd.version import VersionCommand
 
 
 logging.basicConfig(
@@ -58,6 +59,8 @@ def main():
         CheckinCommand,
         ScanCommand,
         ComplianceScanCommand,
+        # apps
+        VerifyPlaybookCommand,
         #
         # --support
         # --diagnosis

@@ -306,3 +306,28 @@ class Egg:
         logger.debug(f"Core command '{command}' took {delta * 100:.1f} ms.\n{core_debug}")
 
         return json.loads(run_process.stdout)
+
+    def run_app(self, app: str, *, argv: list[str]) -> subprocess.CompletedProcess:
+        """Run a Core app.
+
+        :param app: An app module. E.g. `ansible.playbook_verifier`.
+        :param argv: `argv` passed to the application.
+        """
+        logger.debug(f"Running Core app '{app}'.")
+
+        now: float = time.time()
+        run_process = subprocess.run(
+            ["python3", "-m", f"insights.client.apps.{app}", *argv],
+            env={"PYTHONPATH": f"{self.path!s}"},
+            capture_output=True,
+            text=True,
+        )
+        delta: float = time.time() - now
+        if run_process.returncode != 0:
+            logger.error(
+                f"Could not run Core application.\n{_format_subprocess_std(run_process)}"
+            )
+            raise RuntimeError("Could not run Core application.")
+        logger.debug(f"Core application '{app}' took {delta * 100:.1f} ms.")
+
+        return run_process
