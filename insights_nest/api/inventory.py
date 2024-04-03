@@ -80,15 +80,22 @@ class Inventory:
         display_name: Optional[str] = None,
         ansible_name: Optional[str] = None,
     ) -> None:
+        """Update the inventory host.
+
+        :param display_name: Set custom display name. This does not allow resetting.
+        :param ansible_name: Set custom ansible name. Pass an empty string to reset.
+        """
         logging.debug("Updating the host.")
+        # FIXME Should we prevent zero-length display-name from reaching the API?
+        #  Or should we 'reset' it ourselves by passing in the FQDN?
 
         data = {}
-        if display_name:
+        if display_name is not None:
             data["display_name"] = display_name
-        if ansible_name:
+        if ansible_name is not None:
             data["ansible_host"] = ansible_name
 
-        raw: Response = self.connection.patch(
+        _: Response = self.connection.patch(
             f"/hosts/{insights_id}",
             headers={"Content-Type": "application/json"},
             data=json.dumps(data),
