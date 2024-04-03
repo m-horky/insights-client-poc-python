@@ -20,7 +20,7 @@ class VersionCommand(abstract.AbstractCommand):
 
     def run(self, args: argparse.Namespace) -> None:
         try:
-            egg_version: str = egg.Egg.version(include_commit=True)
+            egg_version: str = egg.Egg().version(include_commit=True)
         except RuntimeError:
             egg_version = "unknown"
 

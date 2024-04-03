@@ -25,7 +25,7 @@ class CheckinCommand(abstract.AbstractCommand):
             sys.exit(1)
 
         try:
-            canonical_facts: dict = egg.Egg.run("checkin")
+            canonical_facts: dict = egg.Egg().run("checkin")
         except RuntimeError:
             logging.error("Check-in failed.")
             print("Check-in failed.")

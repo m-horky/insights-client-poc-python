@@ -198,17 +198,35 @@ def update(*, force: bool = False, insecure: bool = False) -> EggUpdateResult:
 
 
 class Egg:
+    """Egg interactions.
+
+    :param path: Path to the egg file.
+    """
+
+    path: pathlib.Path
+
+    def __init__(self, path: Optional[pathlib.Path] = None):
+        """Create an egg reference.
+
+        :param path: Path to the egg file. If `None`, it is automatically discovered.
+        """
+        if path is None:
+            path = type(self)._discover_path()
+        self.path = path
+
     @classmethod
-    def get(cls) -> pathlib.Path:
+    def _discover_path(cls) -> pathlib.Path:
         """Get the path to the egg that should be used.
 
         If en `EGG` environment variable is set, the path it points to will be used as the egg.
         If it does not exist, `RuntimeError` will be raised.
 
-        Otherwise, the CURRENT (the latest downloaded version) or the RPM (the egg shipped with
-        the RPM package) will be used.
+        Otherwise,
+        - the CURRENT (the latest downloaded version) or
+        - the RPM (the egg shipped with the RPM package)
+        will be used.
 
-        :raises RuntimeError: The egg was found.
+        :raises RuntimeError: No egg was found.
         """
         env = os.environ.get("EGG", None)
         if env is not None:
@@ -231,35 +249,29 @@ class Egg:
 
         raise RuntimeError("No egg found.")
 
-    @classmethod
     def version(
-        cls,
-        path: Optional[pathlib.Path] = None,
+        self,
         *,
         include_release: bool = True,
         include_commit: bool = False,
     ) -> str:
         """Get the version of the egg.
 
-        :param path: Path to the egg. If not specified, egg will be discovered dynamically.
         :param include_release:
             Include the egg release, not just the MAJOR.MINOR.PATCH version.
         :param include_commit:
             Include the egg release commit, not just the MAJOR.MINOR.PATCH version.
         :raises RuntimeError: The subprocess failed.
         """
-        if path is None:
-            path = cls.get()
-
         query: str = "insights.package_info['VERSION']"
         if include_release:
-            query += "+'-'+insights.package_info['RELEASE']"
+            query += "+ '-' + insights.package_info['RELEASE']"
         if include_commit:
-            query += "+'+'+insights.package_info['COMMIT']"
+            query += "+ '+' + insights.package_info['COMMIT']"
 
         version_process = subprocess.run(
             ["python3", "-c", f"import insights; print({query})"],
-            env={"PYTHONPATH": f"{path!s}"},
+            env={"PYTHONPATH": f"{self.path!s}"},
             capture_output=True,
             text=True,
         )
@@ -271,22 +283,17 @@ class Egg:
 
         return version_process.stdout.strip()
 
-    @classmethod
-    def commands(cls) -> list[str]:
-        return cls.run("help")["commands"]
+    def commands(self) -> list[str]:
+        return self.run("help")["commands"]
 
-    @classmethod
-    def run(cls, command: str, path: Optional[pathlib.Path] = None) -> dict:
+    def run(self, command: str) -> dict:
         """Run a specific Core command."""
-        if path is None:
-            path = cls.get()
-
         logger.debug(f"Running Core command '{command}'.")
 
         now: float = time.time()
         run_process = subprocess.run(
             ["python3", "-m", "insights.client.phase.v2", command],
-            env={"PYTHONPATH": f"{path!s}"},
+            env={"PYTHONPATH": f"{self.path!s}"},
             capture_output=True,
             text=True,
         )
