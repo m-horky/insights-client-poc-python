@@ -91,7 +91,7 @@ class DisplayNameCommand(abstract.AbstractCommand):
         parser = identity_parser.add_parser(cls.NAME, help=cls.HELP)
         action = parser.add_mutually_exclusive_group(required=True)
         action.add_argument("--set", help="set display name")
-        action.add_argument("--unset", help="reset display name", action="store_true")
+        # --unset is not supported by Inventory.
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
@@ -100,11 +100,7 @@ class DisplayNameCommand(abstract.AbstractCommand):
             print("This host is not registered.")
             sys.exit(0)
 
-        if args.unset:
-            inventory.Inventory().update_host(host.id, display_name=None)
-            sys.exit(0)
-
-        if args.set:
+        if args.set is not None:
             inventory.Inventory().update_host(host.id, display_name=args.set)
             sys.exit(0)
 
@@ -129,11 +125,11 @@ class AnsibleNameCommand(abstract.AbstractCommand):
             print("This host is not registered.")
             sys.exit(0)
 
-        if args.unset:
-            inventory.Inventory().update_host(host.id, ansible_name=None)
+        if args.unset is True:
+            inventory.Inventory().update_host(host.id, ansible_name="")
             sys.exit(0)
 
-        if args.set:
+        if args.set is not None:
             inventory.Inventory().update_host(host.id, ansible_name=args.set)
             sys.exit(0)
 
