@@ -67,11 +67,21 @@ class Inventory:
     def __init__(self, connection: Optional[InventoryConnection] = None):
         self.connection = connection if connection is not None else InventoryConnection()
 
-    def get_hosts(self, machine_id: str) -> list[Host]:
-        # FIXME This should probably iterate over all the hosts? The endpoint is paginated.
-        logging.debug("Getting the list of hosts.")
+    def get_host(self, machine_id: str) -> Optional[Host]:
+        """Get the inventory host entry."""
+        # The API endpoint contains many different parameters we can pass. For the
+        # use-case of insights-client, where we only want this specific system, we
+        # only need the machine-id UUID value. See
+        # https://developers.redhat.com/api-catalog/api/inventory#operation-get-/hosts.
+        logging.debug("Getting the host.")
         raw: Response = self.connection.get("/hosts", params={"insights_id": machine_id})
-        return Hosts.from_json(raw.json()).results
+        hosts: Hosts = Hosts.from_json(raw.json())
+        if len(hosts.results) == 0:
+            logger.debug(f"Host with client UUID '{machine_id}' not found.")
+            return None
+        if len(hosts.results) > 1:
+            logger.warning("Inventory returned more than one host. Using the first one.")
+        return hosts.results[0]
 
     def update_host(
         self,

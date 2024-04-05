@@ -52,7 +52,7 @@ class IdentityShowCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        host: Optional[inventory.Host] = system.get_inventory_entry()
+        host: Optional[inventory.Host] = system.get_inventory_host()
         if host is None:
             print("This host is not registered.")
             sys.exit(0)
@@ -95,7 +95,7 @@ class DisplayNameCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        host: Optional[inventory.Host] = system.get_inventory_entry()
+        host: Optional[inventory.Host] = system.get_inventory_host()
         if host is None:
             print("This host is not registered.")
             sys.exit(0)
@@ -120,7 +120,7 @@ class AnsibleNameCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        host: Optional[inventory.Host] = system.get_inventory_entry()
+        host: Optional[inventory.Host] = system.get_inventory_host()
         if host is None:
             print("This host is not registered.")
             sys.exit(0)

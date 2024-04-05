@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 def is_registered() -> bool:
     """Detect registration status."""
     logger.debug("Determining system registration status.")
-    return get_inventory_entry() is not None
+    return get_inventory_host() is not None
 
 
-def get_inventory_entry() -> Optional[inventory.Host]:
+def get_inventory_host() -> Optional[inventory.Host]:
     logger.debug("Requesting the host from Inventory.")
     if not os.path.isfile("/etc/insights-client/machine-id"):
         logger.debug("machine-id does not exist, we are definitely not registered.")
@@ -23,13 +23,4 @@ def get_inventory_entry() -> Optional[inventory.Host]:
     with open("/etc/insights-client/machine-id") as f:
         machine_id = f.read()
 
-    hosts: list[inventory.Host]
-    hosts = inventory.Inventory().get_hosts(machine_id)
-
-    if not hosts:
-        return None
-    if len(hosts) > 1:
-        logger.debug(
-            "Inventory returned more than one host. Using the first one and ignoring others."
-        )
-    return hosts[0]
+    return inventory.Inventory().get_host(machine_id)

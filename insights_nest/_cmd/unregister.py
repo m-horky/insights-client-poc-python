@@ -4,6 +4,7 @@ import glob
 import logging
 import os.path
 import shutil
+from typing import Optional
 
 from insights_nest.api import inventory
 from insights_nest._cmd import abstract
@@ -33,7 +34,7 @@ class UnregisterCommand(abstract.AbstractCommand):
         # 6. Ensure /var/lib/insights/* does not exist
         # 7. Ensure /etc/rhsm/facts/insights-client.json does not exist
 
-        host = system.get_inventory_entry()
+        host: Optional[inventory.Host] = system.get_inventory_host()
         if not host:
             print("The host was not found in Inventory.")
         else:
