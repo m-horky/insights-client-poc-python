@@ -8,18 +8,17 @@ from insights_nest._cmd import abstract
 from insights_nest._core import system, egg
 from insights_nest.api import ingress
 
-
 logger = logging.getLogger(__name__)
 
 
-class ComplianceScanCommand(abstract.AbstractCommand):
-    NAME = "scan-compliance"
-    HELP = "scan the system for compliance and upload the results to Insights"
+class AdvisorScanCommand(abstract.AbstractCommand):
+    NAME = "scan-advisor"
+    HELP = "scan the system and upload the results to Insights Advisor"
 
     @classmethod
-    def create(cls, subparsers) -> "ComplianceScanCommand":
+    def create(cls, subparsers) -> "AdvisorScanCommand":
         _ = subparsers.add_parser(cls.NAME, help=cls.HELP)
-        # TODO Add Compliance parameters
+        # TODO Add Core parameters
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
@@ -34,7 +33,7 @@ class ComplianceScanCommand(abstract.AbstractCommand):
             print("Could not collect canonical facts.")
             return
 
-        result = egg.Egg().run("compliance")
+        result = egg.Egg().run("advisor")
         payload_path = pathlib.Path(result["payload"])
 
         ingress.Ingress().upload(
