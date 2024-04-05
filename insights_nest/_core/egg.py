@@ -214,6 +214,22 @@ class Egg:
             path = type(self)._discover_path()
         self.path = path
 
+        logger.info(
+            "Prepared egg {version} from {path}".format(
+                version=self.version(include_commit=True, include_release=True),
+                path=path,
+            )
+        )
+
+    @property
+    def pythonpath(self) -> str:
+        """Create a PYTHONPATH to be passed to the egg."""
+        paths: list[str] = [f"{self.path!s}"]
+        pythonpath: str = os.environ.get("PYTHONPATH", "")
+        if pythonpath:
+            paths.append(pythonpath)
+        return ":".join(paths)
+
     @classmethod
     def _discover_path(cls) -> pathlib.Path:
         """Get the path to the egg that should be used.
@@ -271,7 +287,7 @@ class Egg:
 
         version_process = subprocess.run(
             ["python3", "-c", f"import insights; print({query})"],
-            env={"PYTHONPATH": f"{self.path!s}"},
+            env={"PYTHONPATH": self.pythonpath},
             capture_output=True,
             text=True,
         )
@@ -293,17 +309,16 @@ class Egg:
         now: float = time.time()
         run_process = subprocess.run(
             ["python3", "-m", "insights.client.phase.v2", command],
-            env={"PYTHONPATH": f"{self.path!s}"},
+            env={"PYTHONPATH": self.pythonpath},
             capture_output=True,
             text=True,
         )
         delta: float = time.time() - now
         if run_process.returncode != 0:
-            logger.error(f"Could not run Core command.\n{_format_subprocess_std(run_process)}")
+            logger.error("Could not run Core command.")
             raise RuntimeError("Could not run Core.")
 
-        core_debug: str = "\n".join(f"... {line}" for line in run_process.stderr.splitlines())
-        logger.debug(f"Core command '{command}' took {delta * 100:.1f} ms.\n{core_debug}")
+        logger.debug(f"Core command '{command}' took {delta * 100:.1f} ms.")
 
         return json.loads(run_process.stdout)
 
@@ -324,10 +339,9 @@ class Egg:
         )
         delta: float = time.time() - now
         if run_process.returncode != 0:
-            logger.error(
-                f"Could not run Core application.\n{_format_subprocess_std(run_process)}"
-            )
-            raise RuntimeError("Could not run Core application.")
+            logger.error("Could not run Core application.")
+            raise RuntimeError("Could not run Core.")
+
         logger.debug(f"Core application '{app}' took {delta * 100:.1f} ms.")
 
         return run_process
