@@ -39,4 +39,18 @@ To be determined.
 
 ## Debugging
 
+### Environment variables
+
 - `NEST_DEBUG_HTTP`: Print HTTP responses.
+
+### Containers
+
+Running the code inside a container is easy, and may be required for some types of commands (e.g. compliance scan).
+For that, we need to bind-mount the Nest and Core into the container, point Python to Nest and RHSM python packages (so it is able to find them), point the EGG to the Core upstream and then run the Nest code.
+
+```bash
+podman run -it --rm -v .:/insights-nest --workdir /insights-nest -v $CORE:/insights-core ubi9:latest bash
+subscription-manager register
+vi /etc/insights-client/insights-client.conf.d/dev.conf
+PYTHONPATH=/insights-nest:/usr/lib64/python3.9/site-packages/ EGG=/insights-core python3 insights_nest/__init__.py --no-update --help
+```
