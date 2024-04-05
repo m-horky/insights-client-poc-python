@@ -53,7 +53,7 @@ class Hosts:
 
     @classmethod
     def from_json(cls, data: dict) -> "Hosts":
-        data["results"] = [Host.from_json(host) for host in data["results"]]
+        data["results"] = [Host.from_json(host) for host in data.get("results", [])]
         return dto.from_json(cls, data)
 
 
@@ -68,7 +68,10 @@ class Inventory:
         self.connection = connection if connection is not None else InventoryConnection()
 
     def get_host(self, machine_id: str) -> Optional[Host]:
-        """Get the inventory host entry."""
+        """Get the inventory host entry.
+
+        :param machine_id: The Insights Client UUID.
+        """
         # The API endpoint contains many different parameters we can pass. For the
         # use-case of insights-client, where we only want this specific system, we
         # only need the machine-id UUID value. See
@@ -77,7 +80,7 @@ class Inventory:
         raw: Response = self.connection.get("/hosts", params={"insights_id": machine_id})
         hosts: Hosts = Hosts.from_json(raw.json())
         if len(hosts.results) == 0:
-            logger.debug(f"Host with client UUID '{machine_id}' not found.")
+            logger.debug(f"Host with Client UUID '{machine_id}' not found.")
             return None
         if len(hosts.results) > 1:
             logger.warning("Inventory returned more than one host. Using the first one.")
@@ -92,6 +95,7 @@ class Inventory:
     ) -> None:
         """Update the inventory host.
 
+        :param insights_id: The Insights Inventory UUID.
         :param display_name: Set custom display name. This does not allow resetting.
         :param ansible_name: Set custom ansible name. Pass an empty string to reset.
         """
@@ -110,14 +114,22 @@ class Inventory:
             headers={"Content-Type": "application/json"},
             data=json.dumps(data),
         )
-        return
+        return None
 
     def delete_host(self, insights_id: str) -> None:
+        """Delete the Inventory host.
+
+        :param insights_id: The Insights Inventory UUID.
+        """
         logging.debug("Deleting host.")
         self.connection.delete(f"/hosts/{insights_id}")
         return None
 
     def checkin(self, facts: dict) -> Host:
+        """Upload lightweight facts to Inventory.
+
+        :param facts: A set of checkin facts.
+        """
         logging.debug("Uploading canonical facts.")
         raw: Response = self.connection.post(
             "/hosts/checkin",
