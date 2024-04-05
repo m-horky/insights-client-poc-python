@@ -1,8 +1,15 @@
 import argparse
+import logging
+import os
+import pathlib
 import sys
 
 from insights_nest._cmd import abstract
-from insights_nest._core import system
+from insights_nest._core import system, egg
+from insights_nest.api import ingress
+
+
+logger = logging.getLogger(__name__)
 
 
 class ComplianceScanCommand(abstract.AbstractCommand):
@@ -20,3 +27,19 @@ class ComplianceScanCommand(abstract.AbstractCommand):
         if not system.is_registered():
             print("This host is not registered.")
             sys.exit(1)
+
+        try:
+            canonical_facts: dict = egg.Egg().run("checkin")
+        except RuntimeError:
+            logger.error("Could not collect canonical facts.")
+            print("Could not collect canonical facts.")
+            return
+
+        result = egg.Egg().run("compliance")
+        ingress.Ingress().upload(
+            archive=pathlib.Path(result["payload"]),
+            content_type=result["content_type"],
+            facts=canonical_facts,
+        )
+        if os.path.exists(result.get("payload", "")):
+            os.remove(result["payload"])
