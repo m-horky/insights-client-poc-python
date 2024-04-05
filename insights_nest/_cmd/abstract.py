@@ -1,5 +1,4 @@
 import argparse
-from typing import Self
 
 
 class AbstractCommand:
@@ -7,7 +6,7 @@ class AbstractCommand:
     HELP: str
 
     @classmethod
-    def create(cls, subparsers) -> Self:
+    def create(cls, subparsers) -> "AbstractCommand":
         raise NotImplementedError
 
     def run(self, args: argparse.Namespace) -> None:

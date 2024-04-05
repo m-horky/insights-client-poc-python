@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Optional, Self
+from typing import Optional
 
 from insights_nest import config
 from insights_nest.api import dto
@@ -11,7 +11,7 @@ class Route:
     url: str
 
     @classmethod
-    def from_json(cls, data: dict) -> Self:
+    def from_json(cls, data: dict) -> "Route":
         return dto.from_json(cls, data)
 
 

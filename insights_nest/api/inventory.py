@@ -1,7 +1,7 @@
 import dataclasses
 import json
 import logging
-from typing import List, Optional, Self
+from typing import List, Optional
 
 from insights_nest import config
 from insights_nest.api import dto
@@ -39,7 +39,7 @@ class Host:
     system_profile: Optional[dict]
 
     @classmethod
-    def from_json(cls, data: dict):
+    def from_json(cls, data: dict) -> "Host":
         return dto.from_json(cls, data)
 
 
@@ -52,7 +52,7 @@ class Hosts:
     results: List[Host]
 
     @classmethod
-    def from_json(cls, data: dict) -> Self:
+    def from_json(cls, data: dict) -> "Hosts":
         data["results"] = [Host.from_json(host) for host in data["results"]]
         return dto.from_json(cls, data)
 

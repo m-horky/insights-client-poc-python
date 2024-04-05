@@ -1,6 +1,5 @@
 import argparse
 import sys
-from typing import Self
 
 from insights_nest._cmd import abstract
 from insights_nest._core import system
@@ -11,7 +10,7 @@ class ComplianceScanCommand(abstract.AbstractCommand):
     HELP = "scan the system for compliance and upload the results to Insights"
 
     @classmethod
-    def create(cls, subparsers) -> Self:
+    def create(cls, subparsers) -> "ComplianceScanCommand":
         _ = subparsers.add_parser(cls.NAME, help=cls.HELP)
         # TODO Add Compliance parameters
         return cls()

@@ -4,7 +4,6 @@ import glob
 import logging
 import os.path
 import shutil
-from typing import Self
 
 from insights_nest.api import inventory
 from insights_nest._cmd import abstract
@@ -19,7 +18,7 @@ class UnregisterCommand(abstract.AbstractCommand):
     HELP = "unregister the host"
 
     @classmethod
-    def create(cls, subparsers) -> Self:
+    def create(cls, subparsers) -> "UnregisterCommand":
         parser = subparsers.add_parser(cls.NAME, help=cls.HELP)
         parser.add_argument(abstract.FORMAT_FLAG, **abstract.FORMAT_FLAG_ARGS)
         return cls()

@@ -1,7 +1,6 @@
 import argparse
 import logging
 import sys
-from typing import Self
 
 from insights_nest.api import inventory
 from insights_nest._cmd import abstract
@@ -14,7 +13,7 @@ class CheckinCommand(abstract.AbstractCommand):
     HELP = "scan the system for canonical facts and upload the results to Insights"
 
     @classmethod
-    def create(cls, subparsers) -> Self:
+    def create(cls, subparsers) -> "CheckinCommand":
         _ = subparsers.add_parser(cls.NAME, help=cls.HELP)
         return cls()
 

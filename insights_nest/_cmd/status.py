@@ -1,7 +1,6 @@
 import argparse
 import json
 import sys
-from typing import Self
 
 from insights_nest._cmd import abstract
 from insights_nest._core import system
@@ -12,7 +11,7 @@ class StatusCommand(abstract.AbstractCommand):
     HELP = "display host status"
 
     @classmethod
-    def create(cls, subparsers) -> Self:
+    def create(cls, subparsers) -> "StatusCommand":
         parser = subparsers.add_parser(cls.NAME, help=cls.HELP)
         parser.add_argument(abstract.FORMAT_FLAG, **abstract.FORMAT_FLAG_ARGS)
         return cls()

@@ -2,7 +2,6 @@ import argparse
 import logging
 import subprocess
 import sys
-from typing import Self
 
 from insights_nest._cmd import abstract
 from insights_nest._core import egg
@@ -13,7 +12,7 @@ class VerifyPlaybookCommand(abstract.AbstractCommand):
     HELP = "verify an Ansible playbook"
 
     @classmethod
-    def create(cls, subparsers) -> Self:
+    def create(cls, subparsers) -> "VerifyPlaybookCommand":
         _ = subparsers.add_parser(cls.NAME, help=cls.HELP)
         return cls()
 

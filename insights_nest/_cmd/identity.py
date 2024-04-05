@@ -1,7 +1,7 @@
 import argparse
 import json
 import sys
-from typing import Self, Optional
+from typing import Optional
 
 from insights_nest.api import inventory
 from insights_nest._cmd import abstract
@@ -16,7 +16,7 @@ class IdentityCommand(abstract.AbstractCommand):
     parser = None
 
     @classmethod
-    def create(cls, root_parser) -> Self:
+    def create(cls, root_parser) -> "IdentityCommand":
         cls.commands = {}
 
         cls.parser = root_parser.add_parser(cls.NAME, help=cls.HELP)
@@ -46,7 +46,7 @@ class IdentityShowCommand(abstract.AbstractCommand):
     HELP = "display host identity"
 
     @classmethod
-    def create(cls, identity_parser) -> Self:
+    def create(cls, identity_parser) -> "IdentityShowCommand":
         parser = identity_parser.add_parser(cls.NAME, help=cls.HELP)
         parser.add_argument(abstract.FORMAT_FLAG, **abstract.FORMAT_FLAG_ARGS)
         return cls()
@@ -87,7 +87,7 @@ class DisplayNameCommand(abstract.AbstractCommand):
     HELP = "manage display name"
 
     @classmethod
-    def create(cls, identity_parser) -> Self:
+    def create(cls, identity_parser) -> "DisplayNameCommand":
         parser = identity_parser.add_parser(cls.NAME, help=cls.HELP)
         action = parser.add_mutually_exclusive_group(required=True)
         action.add_argument("--set", help="set display name")
@@ -112,7 +112,7 @@ class AnsibleNameCommand(abstract.AbstractCommand):
     HELP = "manage Ansible name"
 
     @classmethod
-    def create(cls, identity_parser) -> Self:
+    def create(cls, identity_parser) -> "AnsibleNameCommand":
         parser = identity_parser.add_parser(cls.NAME, help=cls.HELP)
         action = parser.add_mutually_exclusive_group(required=True)
         action.add_argument("--set", help="set Ansible name")

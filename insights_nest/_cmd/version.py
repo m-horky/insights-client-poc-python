@@ -1,7 +1,6 @@
 import argparse
 import json
 import sys
-from typing import Self
 
 import insights_nest.__about__
 from insights_nest._core import egg
@@ -13,7 +12,7 @@ class VersionCommand(abstract.AbstractCommand):
     HELP = "display versions of components"
 
     @classmethod
-    def create(cls, subparsers) -> Self:
+    def create(cls, subparsers) -> "VersionCommand":
         parser = subparsers.add_parser(cls.NAME, help=cls.HELP)
         parser.add_argument(abstract.FORMAT_FLAG, **abstract.FORMAT_FLAG_ARGS)
         return cls()

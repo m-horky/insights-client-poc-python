@@ -1,6 +1,5 @@
 import argparse
 import sys
-from typing import Self
 
 from insights_nest._cmd import abstract
 from insights_nest._core import system
@@ -11,7 +10,7 @@ class ScanCommand(abstract.AbstractCommand):
     HELP = "scan the system and upload the results to Insights"
 
     @classmethod
-    def create(cls, subparsers) -> Self:
+    def create(cls, subparsers) -> "ScanCommand":
         _ = subparsers.add_parser(cls.NAME, help=cls.HELP)
         # TODO Add Core parameters
         return cls()

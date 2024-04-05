@@ -1,5 +1,6 @@
 import os.path
 import logging
+from typing import Optional
 
 from insights_nest.api import inventory
 
@@ -13,7 +14,7 @@ def is_registered() -> bool:
     return get_inventory_entry() is not None
 
 
-def get_inventory_entry() -> inventory.Host | None:
+def get_inventory_entry() -> Optional[inventory.Host]:
     logger.debug("Requesting the host from Inventory.")
     if not os.path.isfile("/etc/insights-client/machine-id"):
         logger.debug("machine-id does not exist, we are definitely not registered.")
