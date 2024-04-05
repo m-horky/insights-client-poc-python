@@ -66,7 +66,7 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data: Optional[str] = None,
+        data: Optional[bytes] = None,
     ) -> Response:
         url = f"{self.PATH}{endpoint}"
         if params:
@@ -102,7 +102,7 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data: Optional[str] = None,
+        data: Optional[bytes] = None,
     ) -> Response:
         return self._request("GET", endpoint, params=params, headers=headers, data=data)
 
@@ -112,7 +112,7 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data: Optional[str] = None,
+        data: Optional[bytes] = None,
     ) -> Response:
         return self._request("PUT", endpoint, params=params, headers=headers, data=data)
 
@@ -122,7 +122,7 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data: Optional[str] = None,
+        data: Optional[bytes] = None,
     ) -> Response:
         return self._request("POST", endpoint, params=params, headers=headers, data=data)
 
@@ -132,7 +132,7 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data: Optional[str] = None,
+        data: Optional[bytes] = None,
     ) -> Response:
         return self._request("PATCH", endpoint, params=params, headers=headers, data=data)
 
@@ -142,6 +142,6 @@ class Connection:
         *,
         params: Optional[dict[str, str]] = None,
         headers: Optional[dict[str, str]] = None,
-        data: Optional[str] = None,
+        data: Optional[bytes] = None,
     ) -> Response:
         return self._request("DELETE", endpoint, params=params, headers=headers, data=data)

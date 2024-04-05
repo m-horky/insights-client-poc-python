@@ -112,7 +112,7 @@ class Inventory:
         _: Response = self.connection.patch(
             f"/hosts/{insights_id}",
             headers={"Content-Type": "application/json"},
-            data=json.dumps(data),
+            data=json.dumps(data).encode("utf-8"),
         )
         return None
 
@@ -134,7 +134,7 @@ class Inventory:
         raw: Response = self.connection.post(
             "/hosts/checkin",
             headers={"Content-Type": "application/json"},
-            data=json.dumps(facts),
+            data=json.dumps(facts).encode("utf-8"),
         )
 
         if raw.status == 201:
