@@ -18,7 +18,6 @@ class CheckinCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        """Select subcommand to run."""
         if not system.is_registered():
             print("This host is not registered.")
             sys.exit(1)
