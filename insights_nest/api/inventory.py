@@ -76,7 +76,7 @@ class Inventory:
         # use-case of insights-client, where we only want this specific system, we
         # only need the machine-id UUID value. See
         # https://developers.redhat.com/api-catalog/api/inventory#operation-get-/hosts.
-        logging.debug("Getting the host.")
+        logging.debug("Querying hosts by machine-id.")
         raw: Response = self.connection.get("/hosts", params={"insights_id": machine_id})
         hosts: Hosts = Hosts.from_json(raw.json())
         if len(hosts.results) == 0:

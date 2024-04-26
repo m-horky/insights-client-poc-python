@@ -17,7 +17,7 @@ def is_registered() -> bool:
 def get_inventory_host() -> Optional[inventory.Host]:
     logger.debug("Requesting the host from Inventory.")
     if not os.path.isfile("/etc/insights-client/machine-id"):
-        logger.debug("machine-id does not exist, we are definitely not registered.")
+        logger.debug("machine-id does not exist, host is definitely not registered.")
         return None
 
     with open("/etc/insights-client/machine-id") as f:
