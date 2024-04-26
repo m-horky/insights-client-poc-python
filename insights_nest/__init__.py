@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--no-update",
+        "--no-egg-update",
         action="store_true",
         default=False,
         help=argparse.SUPPRESS,
@@ -71,10 +71,8 @@ def main():
             print(f"Unknown command: {args.command}")
             sys.exit(1)
 
-    if not args.no_update:
+    if not args.no_egg_update:
         _: egg.EggUpdateResult = egg.update(force=args.force_egg_update)
-
-    commands[args.command].run(args)
 
 
 if __name__ == "__main__":
