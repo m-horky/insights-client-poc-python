@@ -111,8 +111,8 @@ def _format_subprocess_std(process: subprocess.CompletedProcess) -> str:
     """Format the standard output and error of a subprocess for easy logging."""
     return "\n".join(
         [
-            *[f"...out: {line}" for line in process.stdout.splitlines()],
-            *[f"...err: {line}" for line in process.stderr.splitlines()],
+            *[f"stdout>{line}" for line in process.stdout.splitlines()],
+            *[f"stderr>{line}" for line in process.stderr.splitlines()],
         ]
     )
 
@@ -150,28 +150,27 @@ def _verify_egg_signature(egg: pathlib.Path, signature: pathlib.Path) -> bool:
     return True
 
 
-def update(*, force: bool = False, insecure: bool = False) -> EggUpdateResult:
+def update(*, force: bool = False) -> EggUpdateResult:
     """Update the egg to a new release.
 
     :param force: Always download the egg, even if it already exists locally.
-    :param insecure: Do not validate the GPG signature.
     """
     logger.info("Updating the Egg.")
-    # 1. Fetch the egg and signature into untrusted
+    # 1. Fetch the egg and signature into `untrusted.egg`
     # 2. Verify the signature
-    # 3. Move it to place
+    # 3. Rename it as `current.egg`
 
     route: module_update_router.Route = _get_route()
 
     try:
-        updated: EggUpdateResult = _update_egg(route=route, force=force)
+        update_status: EggUpdateResult = _update_egg(route=route, force=force)
     except Exception:
         logger.exception("Egg update failed.")
         return EggUpdateResult.FETCH_FAILED
 
-    if updated == EggUpdateResult.NO_UPDATE_NEEDED:
+    if update_status == EggUpdateResult.NO_UPDATE_NEEDED:
         logger.info("Local egg is already up to date.")
-        return updated
+        return EggUpdateResult.NO_UPDATE_NEEDED
 
     try:
         _update_egg_signature(route=route)
@@ -179,17 +178,14 @@ def update(*, force: bool = False, insecure: bool = False) -> EggUpdateResult:
         logger.exception("Egg signature update failed.")
         return EggUpdateResult.FETCH_FAILED
 
-    if insecure:
-        logger.warning("Skipping the egg signature verification.")
-    else:
-        ok: bool = _verify_egg_signature(UNTRUSTED_EGG_PATH, UNTRUSTED_SIG_PATH)
-        if not ok:
-            logger.debug(
-                "Cryptographic verification failed, removing both the egg and its signature."
-            )
-            UNTRUSTED_EGG_PATH.unlink(missing_ok=True)
-            UNTRUSTED_SIG_PATH.unlink(missing_ok=True)
-            return EggUpdateResult.VERIFICATION_FAILED
+    ok: bool = _verify_egg_signature(UNTRUSTED_EGG_PATH, UNTRUSTED_SIG_PATH)
+    if not ok:
+        logger.debug(
+            "Cryptographic verification failed, removing both the egg and its signature."
+        )
+        UNTRUSTED_EGG_PATH.unlink(missing_ok=True)
+        UNTRUSTED_SIG_PATH.unlink(missing_ok=True)
+        return EggUpdateResult.VERIFICATION_FAILED
 
     logger.debug("Moving the verified egg in place.")
     shutil.move(UNTRUSTED_EGG_PATH, TRUSTED_EGG_PATH)

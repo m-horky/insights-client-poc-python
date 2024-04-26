@@ -38,12 +38,6 @@ def main():
         default=False,
         help=argparse.SUPPRESS,
     )
-    parser.add_argument(
-        "--insecure-egg",
-        action="store_true",
-        default=False,
-        help=argparse.SUPPRESS,
-    )
 
     commands: dict[str, insights_nest._cmd.abstract.AbstractCommand] = {}
 
@@ -78,9 +72,7 @@ def main():
             sys.exit(1)
 
     if not args.no_update:
-        _: egg.EggUpdateResult = egg.update(
-            force=args.force_egg_update, insecure=args.insecure_egg
-        )
+        _: egg.EggUpdateResult = egg.update(force=args.force_egg_update)
 
     commands[args.command].run(args)
 
