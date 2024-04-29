@@ -6,10 +6,11 @@ import os.path
 import shutil
 import sys
 import datetime
+import uuid
 from typing import Optional
 
 from insights_nest._core import egg, system
-from insights_nest.api import inventory
+from insights_nest.api import inventory, ingress
 
 logger = logging.getLogger(__name__)
 
@@ -55,24 +56,42 @@ class Register:
 
         logger.info("Registering the host.")
 
-        # FIXME Inventory responds with 404 when you try to check in without uploading an archive before.
-        #  Should we try to upload a minimal archive instead, to make the registration quick?
         try:
             egg.Egg.load()
-
             import insights.anchor.v1
+        except ImportError:
+            logger.exception("Could not load the Insights Core.")
+            return pprint("Could not load the Insights Core.", format=format, ok=False)
 
-            archive: insights.anchor.v1.SimpleResult = insights.anchor.v1.Checkin.run()
-            print(archive.data)
-        except RuntimeError:
+        # TODO Query for sub-man certificate ID instead.
+        with open("/etc/insights-client/machine-id", "w") as f:
+            machine_id = str(uuid.uuid4())
+            logger.info(f"Generated machine-id: {machine_id}.")
+            f.write(machine_id)
+
+        try:
+            facts_archive: insights.anchor.v1.SimpleResult = (
+                insights.anchor.v1.CanonicalFacts().run()
+            )
+        except Exception:
             logger.exception("Could not collect canonical facts.")
             return pprint("Could not collect canonical facts.", format=format, ok=False)
 
         try:
-            _: inventory.Host = inventory.Inventory().checkin(archive.data)
-        except LookupError:
-            logger.exception("Could not upload canonical facts to Inventory.")
-            return pprint("Error: Could not register with Inventory.", format=format, ok=False)
+            advisor_archive: insights.anchor.v1.ArchiveResult = insights.anchor.v1.Advisor().run()
+        except Exception:
+            logger.exception("Could not collect Advisor data.")
+            return pprint("Could not collect Advisor data.", format=format, ok=False)
+
+        try:
+            _: ingress.UploadResponse = ingress.Ingress().upload(
+                advisor_archive.path,
+                advisor_archive.content_type,
+                facts_archive.data,
+            )
+        except Exception:
+            logger.exception("Could not upload data to Inventory.")
+            return pprint("Could not register with Inventory.", format=format, ok=False)
 
         # TODO Enable systemd services
 
@@ -83,32 +102,49 @@ class Unregister:
     @classmethod
     def run(cls, *, format: Format) -> int:
         logger.info("Unregistering the host.")
+        # We may not be sure if the host has been registered or not, since the registration
+        # is tied to several weak conditions.
+        was_registered: bool = False
 
         host: Optional[inventory.Host] = system.get_inventory_host()
         if host is not None:
             logger.debug("Deleting the host from Inventory.")
             inventory.Inventory().delete_host(host.id)
+            was_registered = True
 
-        for path_to_delete in [
+        for path in [
+            "/etc/insights-client/machine-id",
+            "/etc/insights-client/.registered",
+        ]:
+            if os.path.exists(path):
+                was_registered = True
+
+        for path in [
             "/etc/insights-client/machine-id",
             "/etc/insights-client/.registered",
             "/etc/rhsm/facts/insights-client.facts",
             *glob.glob("/var/lib/insights/*"),
         ]:
-            if os.path.isdir(path_to_delete):
-                logger.debug(f"Removing directory {path_to_delete}.")
-                shutil.rmtree(path_to_delete)
+            if os.path.isdir(path):
+                logger.debug(f"Removing directory {path}.")
+                shutil.rmtree(path)
                 continue
-            if os.path.exists(path_to_delete):
-                logger.debug(f"Removing file {path_to_delete}.")
-                os.remove(path_to_delete)
+            if os.path.exists(path):
+                logger.debug(f"Removing file {path}.")
+                os.remove(path)
                 continue
 
-        logger.debug("Writing /etc/insights-client/.unregistered")
-        with open("/etc/insights-client/.unregistered", "w") as f:
-            ts: str = datetime.datetime.isoformat(datetime.datetime.now(tz=datetime.timezone.utc))
-            f.write(ts)
+        if not os.path.exists("/etc/insights-client/.unregistered"):
+            was_registered = True
+            logger.debug("Writing /etc/insights-client/.unregistered")
+            with open("/etc/insights-client/.unregistered", "w") as f:
+                f.write(
+                    datetime.datetime.isoformat(datetime.datetime.now(tz=datetime.timezone.utc))
+                )
 
         # TODO Disable systemd services
 
-        return pprint("The host has been unregistered.", format=format, ok=True)
+        if was_registered:
+            return pprint("The host has been unregistered.", format=format, ok=True)
+        else:
+            return pprint("The host is already unregistered.", format=format, ok=False)
