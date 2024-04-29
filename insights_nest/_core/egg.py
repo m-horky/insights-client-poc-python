@@ -1,12 +1,11 @@
 import enum
-import json
 import logging
 import os.path
 import pathlib
 import shutil
 import subprocess
+import sys
 import tempfile
-import time
 from typing import Optional
 
 from insights_nest import config
@@ -295,49 +294,9 @@ class Egg:
 
         return version_process.stdout.strip()
 
-    def commands(self) -> list[str]:
-        return self.run("help")["commands"]
-
-    def run(self, command: str) -> dict:
-        """Run a specific Core command."""
-        logger.debug(f"Running Core command '{command}'.")
-
-        now: float = time.time()
-        run_process = subprocess.run(
-            ["python3", "-m", "insights.client.phase.v2", command],
-            env={"PYTHONPATH": self.pythonpath},
-            capture_output=True,
-            text=True,
-        )
-        delta: float = time.time() - now
-        if run_process.returncode != 0:
-            logger.error("Could not run Core command.")
-            raise RuntimeError("Could not run Core.")
-
-        logger.debug(f"Core command '{command}' took {delta * 100:.1f} ms.")
-
-        return json.loads(run_process.stdout)
-
-    def run_app(self, app: str, *, argv: list[str]) -> subprocess.CompletedProcess:
-        """Run a Core app.
-
-        :param app: An app module. E.g. `ansible.playbook_verifier`.
-        :param argv: `argv` passed to the application.
-        """
-        logger.debug(f"Running Core app '{app}'.")
-
-        now: float = time.time()
-        run_process = subprocess.run(
-            ["python3", "-m", f"insights.client.apps.{app}", *argv],
-            env={"PYTHONPATH": f"{self.path!s}"},
-            capture_output=True,
-            text=True,
-        )
-        delta: float = time.time() - now
-        if run_process.returncode != 0:
-            logger.error("Could not run Core application.")
-            raise RuntimeError("Could not run Core.")
-
-        logger.debug(f"Core application '{app}' took {delta * 100:.1f} ms.")
-
-        return run_process
+    @classmethod
+    def load(cls) -> None:
+        """Dynamically load the egg into PYTHONPATH."""
+        egg_path: pathlib.Path = cls._discover_path()
+        logger.debug(f"Adding egg path {egg_path} into PYTHONPATH.")
+        sys.path = [f"{egg_path!s}"] + sys.path

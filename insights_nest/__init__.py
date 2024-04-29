@@ -8,11 +8,9 @@ import insights_nest._cmd.abstract
 from insights_nest._cmd.checkin import CheckinCommand
 from insights_nest._cmd.identity import IdentityCommand
 from insights_nest._cmd.playbook_verifier import VerifyPlaybookCommand
-from insights_nest._cmd.register import RegisterCommand
 from insights_nest._cmd.scan_advisor import AdvisorScanCommand
 from insights_nest._cmd.scan_compliance import ComplianceScanCommand
 from insights_nest._cmd.status import StatusCommand
-from insights_nest._cmd.unregister import UnregisterCommand
 from insights_nest._cmd.version import VersionCommand
 
 
@@ -43,21 +41,9 @@ def main():
 
     subparsers = parser.add_subparsers(dest="command")
     for subcommand in [
-        # host
         StatusCommand,
         IdentityCommand,
-        RegisterCommand,
-        UnregisterCommand,
         VersionCommand,
-        # collection
-        CheckinCommand,
-        AdvisorScanCommand,
-        ComplianceScanCommand,
-        # apps
-        VerifyPlaybookCommand,
-        #
-        # --support
-        # --diagnosis
     ]:
         commands[subcommand.NAME] = subcommand.create(subparsers)
 
