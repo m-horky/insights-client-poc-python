@@ -27,7 +27,7 @@ def main():
     # Command flags
     parser.add_argument(
         "--group",
-        help="assign the host to an Inventory group",
+        help="assign the host to a group",
     )
     parser.add_argument(
         "--register",
@@ -44,7 +44,7 @@ def main():
 
     args, _ = parser.parse_known_args()
     if args.group:
-        # FIXME Implement --group or remove it.
+        # FIXME Implement --group.
         logger.warning("--group: not implemented, ignoring.")
     if args.register:
         sys.exit(_action.Register.run(format=args.format))
