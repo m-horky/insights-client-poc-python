@@ -22,7 +22,7 @@ class AdvisorScanCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        if not system.is_registered():
+        if system.get_inventory_host() is None:
             print("This host is not registered.")
             sys.exit(1)
 

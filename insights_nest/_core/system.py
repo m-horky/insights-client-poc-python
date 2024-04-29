@@ -8,13 +8,11 @@ from insights_nest.api import inventory
 logger = logging.getLogger(__name__)
 
 
-def is_registered() -> bool:
-    """Detect registration status."""
-    logger.debug("Determining system registration status.")
-    return get_inventory_host() is not None
-
-
 def get_inventory_host() -> Optional[inventory.Host]:
+    """Request host information from Inventory.
+
+    :returns: Host object if it exists in Inventory; None otherwise.
+    """
     logger.debug("Requesting the host from Inventory.")
     if not os.path.isfile("/etc/insights-client/machine-id"):
         logger.debug("machine-id does not exist, host is definitely not registered.")

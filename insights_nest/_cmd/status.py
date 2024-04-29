@@ -17,7 +17,7 @@ class StatusCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        is_registered: bool = system.is_registered()
+        is_registered: bool = system.get_inventory_host() is not None
 
         if args.format == "human":
             if is_registered:

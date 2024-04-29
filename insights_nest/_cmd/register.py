@@ -17,7 +17,7 @@ class RegisterCommand(abstract.AbstractCommand):
         return cls()
 
     def run(self, args: argparse.Namespace) -> None:
-        if system.is_registered():
+        if system.get_inventory_host() is not None:
             print("This host is already registered.")
             sys.exit(1)
 
