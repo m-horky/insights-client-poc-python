@@ -1,56 +1,18 @@
-import enum
-import glob
-import json
-import logging
-import os.path
-import shutil
-import sys
 import datetime
+import glob
+import shutil
+import os
 import uuid
 from typing import Optional
 
-from insights_nest._core import egg, system
-from insights_nest.api import inventory, ingress
-
-logger = logging.getLogger(__name__)
-
-
-class Format(enum.Enum):
-    HUMAN: str = "HUMAN"
-    JSON: str = "JSON"
-
-    @classmethod
-    def parse(cls, value: str) -> "Format":
-        value = value.lower()
-        if value == "human":
-            return cls.HUMAN
-        if value == "json":
-            return cls.JSON
-        raise RuntimeError(f"Unknown format: {format}")
-
-    def __str__(self):
-        return self.value.lower()
-
-    @classmethod
-    def choices(cls) -> list["Format"]:
-        return [cls.HUMAN, cls.JSON]
-
-
-def pprint(message: str, /, format: Format, ok: bool) -> int:
-    """Print a message in requested format and return zero or non-zero code."""
-    if format == Format.JSON:
-        message = json.dumps({"message": message, "ok": ok})
-    if format == Format.HUMAN:
-        if not ok:
-            message = f"Error: {message}"
-
-    print(message, file=sys.stdout)
-    return 0 if ok else 1
+from insights_nest._app import flag, pprint, logger
+from insights_nest._core import system, egg
+from insights_nest.api import ingress, inventory
 
 
 class Register:
     @classmethod
-    def run(cls, *, format: Format) -> int:
+    def run(cls, *, format: flag.Format) -> int:
         if system.get_inventory_host() is not None:
             return pprint("This host is already registered.", format=format, ok=False)
 
@@ -108,7 +70,7 @@ class Register:
 
 class Unregister:
     @classmethod
-    def run(cls, *, format: Format) -> int:
+    def run(cls, *, format: flag.Format) -> int:
         logger.info("Unregistering the host.")
         # We may not be sure if the host has been registered or not, since the registration
         # is tied to several weak conditions.
@@ -156,35 +118,3 @@ class Unregister:
             return pprint("The host has been unregistered.", format=format, ok=True)
         else:
             return pprint("The host is already unregistered.", format=format, ok=False)
-
-
-class Checkin:
-    @classmethod
-    def run(cls, *, format: Format):
-        if system.get_inventory_host() is None:
-            return pprint("This host is not registered.", format=format, ok=False)
-
-        logger.info("Checking in.")
-
-        try:
-            egg.Egg.load()
-            import insights.anchor.v1
-        except ImportError:
-            logger.exception("Could not load the Insights Core.")
-            return pprint("Could not load the Insights Core.", format=format, ok=False)
-
-        try:
-            facts_archive: insights.anchor.v1.SimpleResult = (
-                insights.anchor.v1.CanonicalFacts().run()
-            )
-        except Exception:
-            logger.exception("Could not collect canonical facts.")
-            return pprint("Could not collect canonical facts.", format=format, ok=False)
-
-        try:
-            _: inventory.Host = inventory.Inventory().checkin(facts_archive.data)
-        except Exception:
-            logger.exception("Could not check in with Inventory.")
-            return pprint("Could not check in with Inventory.", format=format, ok=False)
-
-        return pprint("Successfully checked in.", format=format, ok=True)
