@@ -43,6 +43,7 @@ To be determined.
 ### Environment variables
 
 - `NEST_DEBUG_HTTP`: Print HTTP responses.
+- `NEST_DEBUG_STDERR`: Pretty-print log statements to standard error.
 
 ### Containers
 
@@ -53,5 +54,5 @@ For that, we need to bind-mount the Nest and Core into the container, point Pyth
 podman run -it --rm -v .:/insights-nest --workdir /insights-nest -v $CORE:/insights-core ubi9:latest bash
 subscription-manager register
 vi /etc/insights-client/insights-client.conf.d/dev.conf
-PYTHONPATH=/insights-nest:/usr/lib64/python3.9/site-packages/ EGG=/insights-core python3 insights_nest/__init__.py --no-update --help
+PYTHONPATH=/insights-nest:/usr/lib64/python3.9/site-packages/ EGG=/insights-core python3 insights_nest/__init__.py --help
 ```
