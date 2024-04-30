@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def main():
     parser = argparse.ArgumentParser()
 
-    # Generic flags
+    # Modifier flags
     parser.add_argument(
         "--format",
         choices=_action.Format.choices(),
@@ -24,11 +24,13 @@ def main():
         help="output format",
     )
 
-    # Command flags
+    # Non-terminal commands
     parser.add_argument(
         "--group",
         help="assign the host to a group",
     )
+
+    # Terminal commands
     parser.add_argument(
         "--register",
         action="store_true",
@@ -41,6 +43,12 @@ def main():
         default=False,
         help="unregister host from Insights",
     )
+    parser.add_argument(
+        "--checkin",
+        action="store_true",
+        default=False,
+        help="send a light check-in message to Insights",
+    )
 
     args, _ = parser.parse_known_args()
     if args.group:
@@ -50,6 +58,8 @@ def main():
         sys.exit(_action.Register.run(format=args.format))
     if args.unregister:
         sys.exit(_action.Unregister.run(format=args.format))
+    if args.checkin:
+        sys.exit(_action.Checkin.run(format=args.format))
 
     parser.print_help()
 

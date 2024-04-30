@@ -93,6 +93,14 @@ class Register:
             logger.exception("Could not upload data to Inventory.")
             return pprint("Could not register with Inventory.", format=format, ok=False)
 
+        logger.debug("Removing file /etc/insights-client/.unregistered")
+        if os.path.exists("/etc/insights-client/.unregistered"):
+            os.remove("/etc/insights-client/.unregistered")
+
+        logger.debug("Writing /etc/insights-client/.registered")
+        with open("/etc/insights-client/.registered", "w") as f:
+            f.write(datetime.datetime.isoformat(datetime.datetime.now(tz=datetime.timezone.utc)))
+
         # TODO Enable systemd services
 
         return pprint("The host has been registered.", format=format, ok=True)
@@ -148,3 +156,36 @@ class Unregister:
             return pprint("The host has been unregistered.", format=format, ok=True)
         else:
             return pprint("The host is already unregistered.", format=format, ok=False)
+
+
+class Checkin:
+    @classmethod
+    def run(cls, *, format: Format):
+        if system.get_inventory_host() is None:
+            return pprint("This host is not registered.", format=format, ok=False)
+
+        logger.info("Checking in.")
+
+        try:
+            egg.Egg.load()
+            import insights.anchor.v1
+        except ImportError:
+            logger.exception("Could not load the Insights Core.")
+            return pprint("Could not load the Insights Core.", format=format, ok=False)
+
+        try:
+            facts_archive: insights.anchor.v1.SimpleResult = (
+                insights.anchor.v1.CanonicalFacts().run()
+            )
+        except Exception:
+            logger.exception("Could not collect canonical facts.")
+            return pprint("Could not collect canonical facts.", format=format, ok=False)
+
+        try:
+            res: inventory.Host = inventory.Inventory().checkin(facts_archive.data)
+            print(res)
+        except Exception:
+            logger.exception("Could not check in with Inventory.")
+            return pprint("Could not check in with Inventory.", format=format, ok=False)
+
+        pprint("Successfully checked in.", format=format, ok=True)

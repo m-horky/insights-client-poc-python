@@ -17,7 +17,8 @@ A next-generation implementation of [`insights-client`](https://github.com/RedHa
 4. Run the client.
 
     ```bash
-    sudo PYTHONPATH=. EGG=../insights-core python3 insights_nest/__init__.py --insecure-egg ...
+    sudo PYTHONPATH=.:$PATH_TO_SUBSCRIPTION_MANAGER/src EGG=$PATH_TO_INSIGHTS_CORE \
+        python3 insights_nest/app.py [--format json] [--register | --unregister | --checkin]
     ```
 
 
