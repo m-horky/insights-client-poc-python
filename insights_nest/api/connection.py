@@ -77,18 +77,20 @@ class Connection:
         context: ssl.SSLContext = self._create_tls_context()
         conn = http.client.HTTPSConnection(host=self.HOST, port=self.PORT, context=context)
 
-        logger.debug(f"Request {method} {self.HOST}:{self.PORT}{url} (headers={headers})")
+        logger.debug(f"Request {method} {self.HOST}:{self.PORT}{url} (headers={headers}).")
         conn.request(method=method, url=url, headers=headers, body=data)
 
         now: float = time.time()
         raw: http.client.HTTPResponse = conn.getresponse()
         delta: float = time.time() - now
-        logger.debug(f"Response with code {raw.status} after {delta * 100:.1f} ms")
 
         rich = Response(
             status=raw.status,
             headers=dict(raw.headers.items()),
             data=raw.read(),
+        )
+        logger.debug(
+            f"Received response ({len(rich.data)} B) with code {raw.status} after {delta * 100:.1f} ms."
         )
 
         if os.environ.get("NEST_DEBUG_HTTP", None) is not None:
