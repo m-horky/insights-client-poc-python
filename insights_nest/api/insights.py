@@ -23,7 +23,7 @@ class Insights:
         :returns: Binary content (the egg, if present) and headers from the response.
         """
         headers: dict = {}
-        if etag is not None:
+        if etag is not None and len(etag) > 0:
             headers["If-None-Match"] = etag
 
         raw: Response = self.connection.get(
