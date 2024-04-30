@@ -1,14 +1,28 @@
 import argparse
 import logging
+import os
 import sys
 
 from insights_nest import _action
+from insights_nest._core import egg
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    style="{",
-    format="[{levelname:<7}] {filename}:{lineno} {message}\033[0m",
-)
+if os.environ.get("NEST_DEBUG_STDERR", "").lower() in ("true", "1"):
+    LOG_FORMAT = (
+        "\033[32;1m{levelname}\033[0m \033[32m{asctime}\033[0m\n"
+        "\033[33m{pathname}:{lineno}\033[0m\n{message}\n"
+    )
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        style="{",
+        format=LOG_FORMAT,
+    )
+else:
+    LOG_FORMAT = "[{levelname:<7}] {pathname}:{lineno} {message}"
+
+    # TODO Log to file
+
+
 logger = logging.getLogger(__name__)
 
 
