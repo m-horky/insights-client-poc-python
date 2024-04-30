@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+from typing import Optional
 
 from insights_nest import _action
 from insights_nest._core import egg
@@ -40,6 +41,12 @@ def main():
 
     # Non-terminal commands
     parser.add_argument(
+        "--no-egg-update",
+        action="store_true",
+        default=False,
+        help="do not check for egg updates",
+    )
+    parser.add_argument(
         "--group",
         help="assign the host to a group",
     )
@@ -65,15 +72,26 @@ def main():
     )
 
     args, _ = parser.parse_known_args()
+    if args.no_egg_update:
+        logger.debug("Skipping egg update step.")
+    else:
+        # TODO Should we expose this through CLI or flag?
+        egg.update(force=False)
     if args.group:
         # FIXME Implement --group.
         logger.warning("--group: not implemented, ignoring.")
+
+    result: Optional[int] = None
     if args.register:
-        sys.exit(_action.Register.run(format=args.format))
+        result = _action.Register.run(format=args.format)
     if args.unregister:
-        sys.exit(_action.Unregister.run(format=args.format))
+        result = _action.Unregister.run(format=args.format)
     if args.checkin:
-        sys.exit(_action.Checkin.run(format=args.format))
+        result = _action.Checkin.run(format=args.format)
+
+    if result is not None:
+        logger.info(f"Quitting with status code {result}.")
+        sys.exit(result)
 
     parser.print_help()
 
