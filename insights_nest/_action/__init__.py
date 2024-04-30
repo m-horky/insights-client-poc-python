@@ -182,10 +182,9 @@ class Checkin:
             return pprint("Could not collect canonical facts.", format=format, ok=False)
 
         try:
-            res: inventory.Host = inventory.Inventory().checkin(facts_archive.data)
-            print(res)
+            _: inventory.Host = inventory.Inventory().checkin(facts_archive.data)
         except Exception:
             logger.exception("Could not check in with Inventory.")
             return pprint("Could not check in with Inventory.", format=format, ok=False)
 
-        pprint("Successfully checked in.", format=format, ok=True)
+        return pprint("Successfully checked in.", format=format, ok=True)
